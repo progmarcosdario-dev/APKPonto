@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, ArrowLeft, Backspace } from 'lucide-react';
+import { Lock, ArrowLeft, Delete } from 'lucide-react';
 
 export default function PasswordScreen({ onConfirm, onCancel, error }) {
   const [password, setPassword] = useState('');
@@ -102,7 +102,7 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
               className="password-backspace-button"
               disabled={password.length === 0}
             >
-              <Backspace size={20} />
+              <Delete size={20} />
             </button>
           </div>
 
