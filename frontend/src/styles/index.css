@@ -1,0 +1,5 @@
+/* Scopum - Main Styles */
+
+/* Import global styles */
+@import './globals.css';
+@import './screens.css';
