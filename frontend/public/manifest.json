@@ -30,15 +30,7 @@
       "form_factor": "narrow"
     }
   ],
-  "categories": ["productivity", "business"],
-  "screenshots_large": [
-    {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'><rect fill='%232563eb' width='1280' height='720'/><text x='50%' y='50%' font-size='150' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>Scopum</text></svg>",
-      "sizes": "1280x720",
-      "type": "image/svg+xml",
-      "form_factor": "wide"
-    }
-  ],
+  "categories": ["produtividade", "negócios"],
   "shortcuts": [
     {
       "name": "Registrar Ponto",

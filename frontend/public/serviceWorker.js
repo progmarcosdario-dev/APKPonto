@@ -7,29 +7,29 @@ const STATIC_ASSETS = [
   '/manifest.json',
 ];
 
-// Install event - cache static assets
+// Evento de instalação - cachear ativos estáticos
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
+  console.log('[Service Worker] Instalando...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Caching static assets');
+      console.log('[Service Worker] Cacheando ativos estáticos');
       return cache.addAll(STATIC_ASSETS).catch(() => {
-        console.warn('[Service Worker] Some assets could not be cached');
+        console.warn('[Service Worker] Alguns ativos não puderam ser cacheados');
       });
     })
   );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Evento de ativação - limpar caches antigos
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating...');
+  console.log('[Service Worker] Ativando...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
+            console.log('[Service Worker] Deletando cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
           return Promise.resolve();
@@ -40,25 +40,25 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - implement cache-first strategy with network fallback
+// Evento de busca - implementar estratégia cache-first com fallback de rede
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip cross-origin requests
+  // Pular requisições cross-origin
   if (url.origin !== self.location.origin) {
     return;
   }
 
-  // Handle API requests with network-first strategy
+  // Lidar com requisições de API com estratégia network-first
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Clone the response before caching
+          // Clonar resposta antes de cachear
           const clonedResponse = response.clone();
 
-          // Cache successful API responses
+          // Cachear respostas de API bem-sucedidas
           if (response.ok) {
             caches.open(RUNTIME_CACHE).then((cache) => {
               cache.put(request, clonedResponse);
@@ -68,16 +68,16 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // Return cached version if network fails
+          // Retornar versão em cache se a rede falhar
           return caches
             .match(request)
             .then((cachedResponse) => {
               if (cachedResponse) {
-                console.log('[Service Worker] Using cached API response:', request.url);
+                console.log('[Service Worker] Usando resposta de API em cache:', request.url);
                 return cachedResponse;
               }
 
-              // Return offline fallback for failed requests
+              // Retornar fallback offline para requisições falhadas
               return new Response(
                 JSON.stringify({
                   sucesso: false,
@@ -86,7 +86,7 @@ self.addEventListener('fetch', (event) => {
                 }),
                 {
                   status: 503,
-                  statusText: 'Service Unavailable',
+                  statusText: 'Serviço Indisponível',
                   headers: { 'Content-Type': 'application/json' },
                 }
               );
@@ -96,7 +96,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle static assets with cache-first strategy
+  // Lidar com ativos estáticos com estratégia cache-first
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -105,7 +105,7 @@ self.addEventListener('fetch', (event) => {
 
       return fetch(request)
         .then((response) => {
-          // Cache successful responses for static assets
+          // Cachear respostas bem-sucedidas para ativos estáticos
           if (response.ok && request.method === 'GET') {
             const clonedResponse = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -116,13 +116,13 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // Return offline page for failed static asset requests
+          // Retornar página offline para requisições falhadas de ativos estáticos
           return caches.match('/index.html').then((cachedResponse) => {
             return (
               cachedResponse ||
               new Response('Você está offline', {
                 status: 503,
-                statusText: 'Service Unavailable',
+                statusText: 'Serviço Indisponível',
               })
             );
           });
@@ -131,59 +131,59 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Handle background sync for offline ponto registration
+// Lidar com sincronização em segundo plano para registro de ponto offline
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-ponto-registros') {
-    event.waitUntil(syncPontoRegistros());
+    event.waitUntil(sincronizarRegistrosPonto());
   }
 });
 
-// Sync pending ponto registrations when back online
-async function syncPontoRegistros() {
+// Sincronizar registros de ponto pendentes quando voltar online
+async function sincronizarRegistrosPonto() {
   try {
-    const db = await openDatabase();
-    const pendingRecords = await getPendingRecords(db);
+    const db = await abrirBancoDados();
+    const registrosPendentes = await obterRegistrosPendentes(db);
 
-    if (pendingRecords.length === 0) {
-      console.log('[Service Worker] No pending records to sync');
+    if (registrosPendentes.length === 0) {
+      console.log('[Service Worker] Nenhum registro pendente para sincronizar');
       return;
     }
 
-    console.log('[Service Worker] Syncing', pendingRecords.length, 'pending records');
+    console.log('[Service Worker] Sincronizando', registrosPendentes.length, 'registros pendentes');
 
-    for (const record of pendingRecords) {
+    for (const registro of registrosPendentes) {
       try {
         const response = await fetch('/api/ponto/registrar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(record),
+          body: JSON.stringify(registro),
         });
 
         if (response.ok) {
-          await markRecordAsSynced(db, record.id);
-          console.log('[Service Worker] Synced record:', record.id);
+          await marcarRegistroComoSincronizado(db, registro.id);
+          console.log('[Service Worker] Registro sincronizado:', registro.id);
         }
       } catch (error) {
-        console.error('[Service Worker] Failed to sync record:', record.id, error);
+        console.error('[Service Worker] Falha ao sincronizar registro:', registro.id, error);
       }
     }
 
-    // Notify the app that sync is complete
+    // Notificar o app que a sincronização foi concluída
     const clients = await self.clients.matchAll();
     clients.forEach((client) => {
       client.postMessage({
         type: 'SYNC_COMPLETE',
-        synced: pendingRecords.length,
+        sincronizados: registrosPendentes.length,
       });
     });
   } catch (error) {
-    console.error('[Service Worker] Sync failed:', error);
+    console.error('[Service Worker] Sincronização falhou:', error);
     throw error;
   }
 }
 
-// Simple IndexedDB operations for offline sync
-function openDatabase() {
+// Operações simples de IndexedDB para sincronização offline
+function abrirBancoDados() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('scopum-db', 1);
 
@@ -199,7 +199,7 @@ function openDatabase() {
   });
 }
 
-function getPendingRecords(db) {
+function obterRegistrosPendentes(db) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(['pending-registros'], 'readonly');
     const store = transaction.objectStore('pending-registros');
@@ -210,7 +210,7 @@ function getPendingRecords(db) {
   });
 }
 
-function markRecordAsSynced(db, id) {
+function marcarRegistroComoSincronizado(db, id) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(['pending-registros'], 'readwrite');
     const store = transaction.objectStore('pending-registros');
@@ -221,5 +221,5 @@ function markRecordAsSynced(db, id) {
   });
 }
 
-// Service Worker is ready
-console.log('[Service Worker] Service Worker script loaded');
+// Service Worker pronto
+console.log('[Service Worker] Script do Service Worker carregado');

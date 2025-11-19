@@ -1,16 +1,16 @@
-// API client for communicating with the backend server
+// Cliente de API para comunicação com o servidor backend
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
-// Pending records for offline support
-interface PendingRecord {
+// Interface para registros pendentes offline
+interface RegistroPendente {
   id?: number;
   funcionario_codigo: string;
   tipo_marcacao_codigo: string;
   observacao?: string;
 }
 
-// Open IndexedDB for offline storage
-function openDatabase(): Promise<IDBDatabase> {
+// Abrir IndexedDB para armazenamento offline
+function abrirBancoDados(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('scopum-db', 1);
 
@@ -26,42 +26,42 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-// Save pending record for offline sync
-async function savePendingRecord(record: PendingRecord): Promise<void> {
+// Salvar registro pendente para sincronização offline
+async function salvarRegistroPendente(registro: RegistroPendente): Promise<void> {
   try {
-    const db = await openDatabase();
+    const db = await abrirBancoDados();
     const transaction = db.transaction(['pending-registros'], 'readwrite');
     const store = transaction.objectStore('pending-registros');
     await new Promise((resolve, reject) => {
-      const request = store.add(record);
+      const request = store.add(registro);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result);
     });
-    console.log('[API] Record saved for offline sync:', record);
+    console.log('[API] Registro salvo para sincronização offline:', registro);
   } catch (error) {
-    console.error('[API] Failed to save pending record:', error);
+    console.error('[API] Falha ao salvar registro pendente:', error);
   }
 }
 
-// Axios-style API client
-class APIClient {
-  async post(endpoint: string, data: any) {
+// Cliente de API estilo Axios
+class ClienteAPI {
+  async post(endpoint: string, dados: any) {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(dados),
       });
 
-      const responseData = await response.json();
+      const dadosResponse = await response.json();
 
       if (!response.ok) {
-        throw new Error(responseData.mensagem || 'Request failed');
+        throw new Error(dadosResponse.mensagem || 'Erro na requisição');
       }
 
-      return { data: responseData, status: response.status };
+      return { dados: dadosResponse, status: response.status };
     } catch (error) {
-      console.error('[API] POST request failed:', error);
+      console.error('[API] Erro na requisição POST:', error);
       throw error;
     }
   }
@@ -69,30 +69,30 @@ class APIClient {
   async get(endpoint: string) {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`);
-      const data = await response.json();
+      const dados = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.mensagem || 'Request failed');
+        throw new Error(dados.mensagem || 'Erro na requisição');
       }
 
-      return { data, status: response.status };
+      return { dados, status: response.status };
     } catch (error) {
-      console.error('[API] GET request failed:', error);
+      console.error('[API] Erro na requisição GET:', error);
       throw error;
     }
   }
 
-  // Specific methods
-  async login(funcionario_codigo: string, senha: string) {
+  // Métodos específicos
+  async autenticar(funcionario_codigo: string, senha: string) {
     return this.post('/auth/login', { funcionario_codigo, senha });
   }
 
-  async getTipos() {
+  async obterTipos() {
     try {
       const response = await this.get('/ponto/tipos');
-      return response.data;
+      return response.dados;
     } catch (error) {
-      console.error('[API] Failed to fetch tipos:', error);
+      console.error('[API] Falha ao buscar tipos:', error);
       return [];
     }
   }
@@ -102,19 +102,19 @@ class APIClient {
     tipo_marcacao_codigo: string,
     observacao?: string
   ) {
-    const record = {
+    const registro = {
       funcionario_codigo,
       tipo_marcacao_codigo,
       observacao,
     };
 
     try {
-      const response = await this.post('/ponto/registrar', record);
-      return response.data;
+      const response = await this.post('/ponto/registrar', registro);
+      return response.dados;
     } catch (error) {
-      // Save for offline sync if network request fails
-      await savePendingRecord(record as any);
-      console.error('[API] Failed to register ponto:', error);
+      // Salvar para sincronização offline se a requisição de rede falhar
+      await salvarRegistroPendente(registro as any);
+      console.error('[API] Falha ao registrar ponto:', error);
       return {
         sucesso: false,
         mensagem: 'Erro de conexão. O registro será sincronizado quando a conexão for restaurada.',
@@ -123,22 +123,22 @@ class APIClient {
     }
   }
 
-  async getHistorico(funcionario_codigo: string) {
+  async obterHistorico(funcionario_codigo: string) {
     try {
       const response = await this.get(`/ponto/historico/${funcionario_codigo}`);
-      return response.data;
+      return response.dados;
     } catch (error) {
-      console.error('[API] Failed to fetch historico:', error);
+      console.error('[API] Falha ao buscar histórico:', error);
       return [];
     }
   }
 
-  async getSyncStatus() {
+  async obterStatusSync() {
     try {
       const response = await this.get('/sync/status');
-      return response.data;
+      return response.dados;
     } catch (error) {
-      console.error('[API] Failed to fetch sync status:', error);
+      console.error('[API] Falha ao buscar status de sincronização:', error);
       return { sucesso: false, offline: true };
     }
   }
@@ -147,20 +147,20 @@ class APIClient {
     return this.post('/sync/sincronizar', {});
   }
 
-  async requestBackgroundSync() {
+  async solicitarSincronizacaoSegundo() {
     if ('serviceWorker' in navigator && 'SyncManager' in window) {
       try {
         const registration = await navigator.serviceWorker.ready;
         // @ts-ignore
         await registration.sync.register('sync-ponto-registros');
-        console.log('[API] Background sync requested');
+        console.log('[API] Sincronização em segundo plano solicitada');
       } catch (error) {
-        console.warn('[API] Background sync not supported:', error);
+        console.warn('[API] Sincronização em segundo plano não suportada:', error);
       }
     }
   }
 }
 
-const API = new APIClient();
+const API = new ClienteAPI();
 
 export default API;
