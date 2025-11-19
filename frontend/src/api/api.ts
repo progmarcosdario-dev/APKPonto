@@ -59,7 +59,7 @@ class ClienteAPI {
         throw new Error(dadosResponse.mensagem || 'Erro na requisição');
       }
 
-      return { dados: dadosResponse, status: response.status };
+      return { data: dadosResponse, status: response.status };
     } catch (error) {
       console.error('[API] Erro na requisição POST:', error);
       throw error;
@@ -75,7 +75,7 @@ class ClienteAPI {
         throw new Error(dados.mensagem || 'Erro na requisição');
       }
 
-      return { dados, status: response.status };
+      return { data: dados, status: response.status };
     } catch (error) {
       console.error('[API] Erro na requisição GET:', error);
       throw error;
@@ -90,7 +90,7 @@ class ClienteAPI {
   async obterTipos() {
     try {
       const response = await this.get('/ponto/tipos');
-      return response.dados;
+      return response.data;
     } catch (error) {
       console.error('[API] Falha ao buscar tipos:', error);
       return [];
@@ -110,7 +110,7 @@ class ClienteAPI {
 
     try {
       const response = await this.post('/ponto/registrar', registro);
-      return response.dados;
+      return response.data;
     } catch (error) {
       // Salvar para sincronização offline se a requisição de rede falhar
       await salvarRegistroPendente(registro as any);
@@ -126,7 +126,7 @@ class ClienteAPI {
   async obterHistorico(funcionario_codigo: string) {
     try {
       const response = await this.get(`/ponto/historico/${funcionario_codigo}`);
-      return response.dados;
+      return response.data;
     } catch (error) {
       console.error('[API] Falha ao buscar histórico:', error);
       return [];
@@ -136,7 +136,7 @@ class ClienteAPI {
   async obterStatusSync() {
     try {
       const response = await this.get('/sync/status');
-      return response.dados;
+      return response.data;
     } catch (error) {
       console.error('[API] Falha ao buscar status de sincronização:', error);
       return { sucesso: false, offline: true };
