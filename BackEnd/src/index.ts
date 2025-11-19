@@ -1,11 +1,14 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 import { db, initialize } from './database/db';
 import * as firebirdDb from './database/firebird';
 import authRoutes from './routes/authRoutes';
 import pontoRoutes from './routes/pontoRoutes';
 import syncRoutes from './routes/syncRoutes';
+import logger from './utils/logger';
+import swaggerSpecs from './swagger/swaggerConfig';
 
 dotenv.config();
 
@@ -15,23 +18,34 @@ const app: Express = express();
 app.use(cors());
 app.use(express.json());
 
+// Middleware de logging
+app.use((req: Request, res: Response, next) => {
+  logger.info(`${req.method} ${req.path}`, { ip: req.ip });
+  next();
+});
+
 // Inicializar banco de dados local
 initialize();
+logger.info('Banco de dados SQLite inicializado');
 
 // Inicializar conexão com Firebird
 firebirdDb.inicializarConexao()
   .then(() => {
-    console.log('Firebird conectado com sucesso');
+    logger.info('Firebird conectado com sucesso');
   })
   .catch((erro) => {
-    console.warn('Aviso: Firebird não disponível no momento:', erro.message);
-    console.log('Sistema funcionará em modo offline');
+    logger.warn('Aviso: Firebird não disponível no momento', { erro: erro.message });
+    logger.info('Sistema funcionará em modo offline');
   });
 
 // Rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/ponto', pontoRoutes);
 app.use('/api/sync', syncRoutes);
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(swaggerSpecs, { swaggerOptions: { persistAuthorization: true } }));
 
 // Rota raiz - Status da API
 app.get('/', (req: Request, res: Response) => {
@@ -61,5 +75,5 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT} ✅`);
+  logger.info(`Servidor rodando na porta ${PORT} ✅`);
 });

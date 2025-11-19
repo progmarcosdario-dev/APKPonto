@@ -1,5 +1,6 @@
 import { db } from '../database/db';
 import * as firebirdDb from '../database/firebird';
+import logger from '../utils/logger';
 
 interface Registro {
   id: number;
@@ -26,19 +27,23 @@ interface StatusResponse {
 async function sincronizarPendentes(): Promise<SincronizacaoResponse> {
   return new Promise(async (resolve, reject) => {
     try {
+      logger.info('Iniciando sincronização de registros pendentes');
+
       // Buscar registros não sincronizados
       db.all(
         `SELECT * FROM ponto_funcionario WHERE sincronizado = 0 ORDER BY data_criacao ASC`,
         async (err: Error | null, registros: Registro[] | undefined) => {
           if (err) {
-            console.error('Erro ao buscar registros pendentes:', err);
+            logger.error('Erro ao buscar registros pendentes', { erro: err.message });
             return reject(err);
           }
 
           if (!registros || registros.length === 0) {
-            console.log('Nenhum registro para sincronizar');
+            logger.info('Nenhum registro para sincronizar');
             return resolve({ sucesso: true, sincronizados: 0, total: 0 });
           }
+
+          logger.info('Registros encontrados para sincronização', { total: registros.length });
 
           let sincronizados = 0;
           let erros: string[] = [];
@@ -61,9 +66,11 @@ async function sincronizarPendentes(): Promise<SincronizacaoResponse> {
                 (updateErr: Error | null) => {
                   if (!updateErr) {
                     sincronizados++;
-                    console.log(`Registro ${registro.id} sincronizado com sucesso`);
+                    logger.info(`Registro sincronizado`, { registro_id: registro.id, firebird_id: resultado.codigo });
                   } else {
-                    erros.push(`Erro ao atualizar registro ${registro.id}: ${(updateErr as any).message}`);
+                    const erroMsg = `Erro ao atualizar registro ${registro.id}: ${(updateErr as any).message}`;
+                    erros.push(erroMsg);
+                    logger.error('Erro ao atualizar registro', { registro_id: registro.id, erro: (updateErr as any).message });
                   }
                 }
               );

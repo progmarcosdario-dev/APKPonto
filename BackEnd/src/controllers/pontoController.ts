@@ -1,16 +1,20 @@
 import { Request, Response } from 'express';
 import { db } from '../database/db';
 import * as firebirdDb from '../database/firebird';
+import logger from '../utils/logger';
 
 // Obter tipos de marcação
 async function obterTiposMarcacao(req: Request, res: Response): Promise<any> {
   try {
+    logger.info('Buscando tipos de marcação');
     const tipos = await firebirdDb.obterTiposMarcacao();
+    logger.info('Tipos de marcação obtidos com sucesso', { quantidade: tipos?.length });
     res.json({
       sucesso: true,
       tipos: tipos || []
     });
   } catch (erro: any) {
+    logger.error('Erro ao obter tipos de marcação', { erro: erro.message });
     res.status(500).json({
       sucesso: false,
       mensagem: 'Erro ao obter tipos de marcação',
