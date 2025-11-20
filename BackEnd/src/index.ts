@@ -1,6 +1,5 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import { db, initialize } from './database/db';
 import * as firebirdDb from './database/firebird';
@@ -9,8 +8,6 @@ import pontoRoutes from './routes/pontoRoutes';
 import syncRoutes from './routes/syncRoutes';
 import logger from './utils/logger';
 import swaggerSpecs from './swagger/swaggerConfig';
-
-dotenv.config();
 
 const app: Express = express();
 
