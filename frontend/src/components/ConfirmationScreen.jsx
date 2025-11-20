@@ -324,32 +324,6 @@ export default function ConfirmationScreen({
         >
           Retornando em <span style={{ fontWeight: 700, color: '#E30613' }}>{countdown}s</span>...
         </motion.p>
-
-        {/* Botão Registrar Outro */}
-        <motion.button
-          onClick={onRegisterAnother}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.85 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          style={{
-            height: '3.5rem',
-            paddingLeft: '2rem',
-            paddingRight: '2rem',
-            backgroundColor: '#E30613',
-            color: 'white',
-            fontWeight: 700,
-            borderRadius: '0.75rem',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            transition: 'all 0.2s'
-          }}
-        >
-          Registrar Outro Ponto
-        </motion.button>
       </div>
     </motion.div>
   );

@@ -130,7 +130,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
       }}
     >
       {/* Logo */}
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '1rem' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '0.5rem' }}>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -141,7 +141,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             src={logo}
             alt="Scopum Logo"
             style={{
-              width: '8rem',
+              width: '6rem',
               height: 'auto',
               borderRadius: '1rem',
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
@@ -156,7 +156,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '1.5rem',
+        gap: '1rem',
         flex: 1,
         justifyContent: 'center',
         maxWidth: '40rem',
@@ -416,7 +416,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                 placeholder="Digite uma observação..."
                 style={{
                   width: '100%',
-                  padding: '1rem',
+                  padding: '0.75rem',
                   borderRadius: '0.75rem',
                   border: 'none',
                   backgroundColor: 'rgba(255, 255, 255, 0.6)',
@@ -426,7 +426,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                   fontFamily: 'inherit',
                   fontSize: '0.95rem',
-                  minHeight: '5rem'
+                  minHeight: '3rem'
                 }}
               />
             </motion.div>
