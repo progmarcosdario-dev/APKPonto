@@ -1,5 +1,6 @@
 // Cliente de API para comunicação com o servidor backend
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+// URL configurada para rede local (tablet e PC na mesma rede WiFi)
+const API_BASE_URL = 'http://192.168.56.1:3001/api';
 
 // Interface para registros pendentes offline
 interface RegistroPendente {
