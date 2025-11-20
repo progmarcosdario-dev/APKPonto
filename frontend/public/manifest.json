@@ -3,9 +3,9 @@
   "short_name": "Scopum",
   "description": "Aplicativo para registro e controle de ponto de trabalho com suporte offline",
   "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "display": "fullscreen",
+  "background_color": "#EBEBEB",
+  "theme_color": "#E30613",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [

@@ -1,8 +1,18 @@
 /* App styles - see styles/ folder for all component styles */
 
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 .app {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-container {
@@ -10,4 +20,20 @@
   min-height: 100vh;
   max-width: 1024px;
   margin: 0 auto;
+}
+
+/* Fullscreen mode */
+:fullscreen {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Hide browser UI elements */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-top: max(0px, env(safe-area-inset-top));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
 }

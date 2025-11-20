@@ -5,23 +5,44 @@ import logo from '../assets/logo.png';
 
 export default function WelcomeScreen({ onStart }) {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [greeting, setGreeting] = useState('');
+  const fullscreenButtonRef = React.useRef(null);
+
+  const handleFullscreen = async () => {
+    try {
+      const docElement = document.documentElement;
+
+      console.log('Tentando fullscreen...');
+
+      if (docElement.requestFullscreen) {
+        await docElement.requestFullscreen({ navigationUI: "hide" });
+        console.log('✓ Fullscreen ativado!');
+      } else if (docElement.webkitRequestFullscreen) {
+        await docElement.webkitRequestFullscreen();
+        console.log('✓ Fullscreen (webkit) ativado!');
+      }
+
+      // Travar orientação para portrait
+      if (window.screen?.orientation?.lock) {
+        try {
+          await window.screen.orientation.lock('portrait-primary');
+          console.log('✓ Orientação travada para portrait');
+        } catch (e) {
+          console.log('Lock orientação não suportado');
+        }
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
 
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) {
-      setGreeting('Bom dia');
-    } else if (hour >= 12 && hour < 18) {
-      setGreeting('Boa tarde');
-    } else {
-      setGreeting('Boa noite');
-    }
-
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+    };
   }, []);
 
   const formatDate = (date) => {
@@ -57,9 +78,41 @@ export default function WelcomeScreen({ onStart }) {
         justifyContent: 'space-between',
         minHeight: '100vh',
         padding: '2rem',
-        backgroundColor: '#EBEBEB'
+        backgroundColor: '#EBEBEB',
+        position: 'relative'
       }}
     >
+      {/* Botão Fullscreen - Canto Superior Direito */}
+      <button
+        ref={fullscreenButtonRef}
+        onClick={handleFullscreen}
+        title="Tela Cheia"
+        style={{
+          position: 'absolute',
+          top: '1rem',
+          right: '1rem',
+          width: '2.5rem',
+          height: '2.5rem',
+          borderRadius: '50%',
+          backgroundColor: 'rgba(227, 6, 19, 0.2)',
+          border: '1px solid rgba(227, 6, 19, 0.3)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.25rem',
+          transition: 'all 0.2s',
+          zIndex: 1000
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(227, 6, 19, 0.3)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'rgba(227, 6, 19, 0.2)';
+        }}
+      >
+        ⛶
+      </button>
       {/* Logo */}
       <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '1rem' }}>
         <motion.div
@@ -94,15 +147,6 @@ export default function WelcomeScreen({ onStart }) {
         width: '100%',
         marginTop: '-4rem'
       }}>
-        {/* Saudação */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          style={{ textAlign: 'center' }}
-        >
-          <p style={{ color: '#5A5A5A', fontSize: '0.875rem', fontWeight: 500 }}>{greeting}</p>
-        </motion.div>
 
         {/* Título */}
         <motion.div

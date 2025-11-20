@@ -96,7 +96,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
 
     if (!isEnabled) {
       // Mostrar alerta se já foi registrado
-      setDuplicateAlert(`Este ponto já foi registrado hoje!`);
+      setDuplicateAlert(`Este registro já foi feito!`);
       setTimeout(() => setDuplicateAlert(null), 3000);
       return;
     }
@@ -123,14 +123,15 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
         minHeight: '100vh',
-        padding: '2rem',
-        backgroundColor: '#EBEBEB'
+        padding: '0.75rem 2rem',
+        backgroundColor: '#EBEBEB',
+        overflow: 'hidden'
       }}
     >
       {/* Logo */}
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '0.5rem' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '0', flexShrink: 0 }}>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -141,7 +142,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             src={logo}
             alt="Scopum Logo"
             style={{
-              width: '6rem',
+              width: '4.5rem',
               height: 'auto',
               borderRadius: '1rem',
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
@@ -156,11 +157,12 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '1rem',
-        flex: 1,
-        justifyContent: 'center',
+        gap: '0.3rem',
+        justifyContent: 'flex-start',
         maxWidth: '40rem',
-        width: '100%'
+        width: '100%',
+        overflow: 'hidden',
+        paddingBottom: '0.3rem'
       }}>
         {/* Card: Registrar ponto */}
         <motion.div
@@ -170,22 +172,23 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem',
+            gap: '0.4rem',
             backgroundColor: 'rgba(255, 255, 255, 0.6)',
             backdropFilter: 'blur(4px)',
             borderRadius: '1rem',
-            padding: '1.5rem',
+            padding: '0.75rem',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-            width: '100%'
+            width: '100%',
+            flexShrink: 0
           }}
         >
-          <h3 style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.875rem', margin: 0 }}>Registrar ponto</h3>
+          <h3 style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.75rem', margin: 0 }}>Registrar ponto</h3>
 
           {/* Funcionário */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <div style={{
-              width: '3rem',
-              height: '3rem',
+              width: '2.5rem',
+              height: '2.5rem',
               borderRadius: '50%',
               backgroundColor: '#E30613',
               display: 'flex',
@@ -193,34 +196,35 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
               justifyContent: 'center',
               color: 'white',
               fontWeight: 700,
-              fontSize: '1.25rem'
+              flexShrink: 0
             }}>
-              <User size={20} strokeWidth={2} color="white" />
+              <User size={18} strokeWidth={2} color="white" />
             </div>
             <div>
-              <p style={{ color: '#5A5A5A', fontSize: '0.75rem', margin: '0.25rem 0' }}>Funcionário</p>
-              <p style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '1rem', margin: 0 }}>{employeeName}</p>
+              <p style={{ color: '#5A5A5A', fontSize: '0.65rem', margin: '0.1rem 0' }}>Funcionário</p>
+              <p style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.85rem', margin: 0 }}>{employeeName}</p>
             </div>
           </div>
 
           {/* Data e Hora */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <div style={{
-              width: '3rem',
-              height: '3rem',
+              width: '2.5rem',
+              height: '2.5rem',
               borderRadius: '50%',
               backgroundColor: '#FFB800',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              fontWeight: 700
+              fontWeight: 700,
+              flexShrink: 0
             }}>
-              <Clock size={20} strokeWidth={2} color="white" />
+              <Clock size={18} strokeWidth={2} color="white" />
             </div>
             <div>
-              <p style={{ color: '#5A5A5A', fontSize: '0.75rem', margin: '0.25rem 0' }}>{dateStr}</p>
-              <p style={{ color: '#E30613', fontWeight: 700, fontSize: '1.125rem', fontFamily: 'monospace', margin: 0 }}>{timeStr}</p>
+              <p style={{ color: '#5A5A5A', fontSize: '0.65rem', margin: '0.1rem 0' }}>{dateStr}</p>
+              <p style={{ color: '#E30613', fontWeight: 700, fontSize: '0.95rem', fontFamily: 'monospace', margin: 0 }}>{timeStr}</p>
             </div>
           </div>
         </motion.div>
@@ -233,9 +237,10 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
           style={{
             color: '#2A2A2A',
             fontWeight: 700,
-            fontSize: '1rem',
+            fontSize: '0.85rem',
             textAlign: 'center',
-            margin: '1rem 0'
+            margin: '0.2rem 0',
+            flexShrink: 0
           }}
         >
           Tipo de ponto
@@ -274,7 +279,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.75rem',
+            gap: '0.35rem',
             width: '100%'
           }}
         >
@@ -295,8 +300,8 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '1rem',
-                  padding: '1rem',
+                  gap: '0.5rem',
+                  padding: '0.55rem',
                   borderRadius: '0.75rem',
                   backgroundColor: selectedType === type.id ? 'rgba(227, 6, 19, 0.1)' : 'rgba(255, 255, 255, 0.6)',
                   border: selectedType === type.id ? '2px solid #E30613' : 'none',
@@ -311,8 +316,8 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
               >
                 {/* Radio Button */}
                 <div style={{
-                  width: '1.5rem',
-                  height: '1.5rem',
+                  width: '1rem',
+                  height: '1rem',
                   borderRadius: '50%',
                   border: selectedType === type.id ? '2px solid #E30613' : '2px solid #D1D5DB',
                   display: 'flex',
@@ -322,8 +327,8 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                 }}>
                   {selectedType === type.id && (
                     <div style={{
-                      width: '0.75rem',
-                      height: '0.75rem',
+                      width: '0.5rem',
+                      height: '0.5rem',
                       borderRadius: '50%',
                       backgroundColor: '#E30613'
                     }} />
@@ -332,14 +337,14 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
 
                 {/* Ícone */}
                 <div style={{
-                  width: '2.5rem',
-                  height: '2.5rem',
+                  width: '1.8rem',
+                  height: '1.8rem',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  fontSize: '1.5rem',
+                  fontSize: '1rem',
                   backgroundColor: type.color === 'success' ? 'rgba(15, 124, 62, 0.2)' :
                                    type.color === 'warning' ? 'rgba(217, 119, 6, 0.2)' :
                                    type.color === 'error' ? 'rgba(220, 38, 38, 0.2)' : 'rgba(200, 200, 200, 0.2)'
@@ -352,7 +357,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                   flex: 1,
                   color: '#2A2A2A',
                   fontWeight: 500,
-                  fontSize: '0.95rem'
+                  fontSize: '0.75rem'
                 }}>
                   {type.label}
                 </span>
@@ -363,8 +368,8 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     style={{
-                      width: '1.5rem',
-                      height: '1.5rem',
+                      width: '1rem',
+                      height: '1rem',
                       borderRadius: '50%',
                       backgroundColor: '#0F7C3E',
                       display: 'flex',
@@ -372,7 +377,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                       justifyContent: 'center',
                       color: 'white',
                       fontWeight: 700,
-                      fontSize: '0.875rem',
+                      fontSize: '0.65rem',
                       flexShrink: 0
                     }}
                   >
@@ -381,13 +386,13 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                 )}
                 {!isEnabled && !isCompleted && (
                   <div style={{
-                    width: '1.5rem',
-                    height: '1.5rem',
+                    width: '1rem',
+                    height: '1rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#E30613',
-                    fontSize: '1rem',
+                    fontSize: '0.85rem',
                     flexShrink: 0
                   }}>
                     🔒
@@ -416,7 +421,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                 placeholder="Digite uma observação..."
                 style={{
                   width: '100%',
-                  padding: '0.75rem',
+                  padding: '0.4rem',
                   borderRadius: '0.75rem',
                   border: 'none',
                   backgroundColor: 'rgba(255, 255, 255, 0.6)',
@@ -425,8 +430,10 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                   outline: 'none',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                   fontFamily: 'inherit',
-                  fontSize: '0.95rem',
-                  minHeight: '3rem'
+                  fontSize: '0.8rem',
+                  minHeight: '1.8rem',
+                  maxHeight: '1.8rem',
+                  overflow: 'auto'
                 }}
               />
             </motion.div>
@@ -443,9 +450,10 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
           width: '100%',
           display: 'flex',
           alignItems: 'center',
-          gap: '1rem',
+          gap: '0.5rem',
           justifyContent: 'center',
-          paddingBottom: '1rem'
+          paddingTop: '0',
+          flexShrink: 0
         }}
       >
         <motion.button
@@ -455,19 +463,19 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0.3rem',
             color: '#5A5A5A',
             backgroundColor: 'transparent',
             border: 'none',
             cursor: 'pointer',
-            fontSize: '1rem',
+            fontSize: '0.8rem',
             fontWeight: 500,
             transition: 'color 0.2s'
           }}
           onMouseEnter={(e) => e.currentTarget.style.color = '#2A2A2A'}
           onMouseLeave={(e) => e.currentTarget.style.color = '#5A5A5A'}
         >
-          <ArrowLeft size={20} strokeWidth={2} />
+          <ArrowLeft size={16} strokeWidth={2} />
           <span>Cancelar</span>
         </motion.button>
 
@@ -480,9 +488,9 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             whileTap={{ scale: 0.98 }}
             style={{
               marginLeft: 'auto',
-              height: '3.5rem',
-              paddingLeft: '2rem',
-              paddingRight: '2rem',
+              height: '2.6rem',
+              paddingLeft: '1.25rem',
+              paddingRight: '1.25rem',
               backgroundColor: '#0F7C3E',
               color: 'white',
               fontWeight: 700,
@@ -490,7 +498,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
               border: 'none',
               cursor: 'pointer',
-              fontSize: '1rem',
+              fontSize: '0.85rem',
               transition: 'all 0.2s'
             }}
           >
