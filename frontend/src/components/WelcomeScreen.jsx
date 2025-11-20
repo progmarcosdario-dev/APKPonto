@@ -50,34 +50,58 @@ export default function WelcomeScreen({ onStart }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col items-center justify-between min-h-screen p-8 bg-brand"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: '100vh',
+        padding: '2rem',
+        backgroundColor: '#EBEBEB'
+      }}
     >
       {/* Logo */}
-      <div className="w-full flex justify-center pt-4">
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '1rem' }}>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 150 }}
-          className="relative"
+          style={{ position: 'relative' }}
         >
           <img
             src={logo}
             alt="Scopum Logo"
-            className="w-32 h-auto rounded-2xl shadow-lg bg-white"
+            style={{
+              width: '8rem',
+              height: 'auto',
+              borderRadius: '1rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              backgroundColor: '#FFFFFF'
+            }}
           />
         </motion.div>
       </div>
 
       {/* Conteúdo Central */}
-      <div className="flex flex-col items-center gap-5 flex-1 justify-center max-w-md w-full -mt-16">
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1.25rem',
+        flex: 1,
+        justifyContent: 'center',
+        maxWidth: '28rem',
+        width: '100%',
+        marginTop: '-4rem'
+      }}>
         {/* Saudação */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="text-center"
+          style={{ textAlign: 'center' }}
         >
-          <p className="text-text-secondary text-sm font-medium">{greeting}</p>
+          <p style={{ color: '#5A5A5A', fontSize: '0.875rem', fontWeight: 500 }}>{greeting}</p>
         </motion.div>
 
         {/* Título */}
@@ -85,10 +109,9 @@ export default function WelcomeScreen({ onStart }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-center"
+          style={{ textAlign: 'center' }}
         >
-          <h1 className="text-4xl font-bold text-text-primary">Scopum</h1>
-          <p className="text-text-secondary text-sm mt-1">Controle de Ponto</p>
+          <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#2A2A2A' }}>Controle de Ponto</h1>
         </motion.div>
 
         {/* Data e Hora */}
@@ -96,15 +119,33 @@ export default function WelcomeScreen({ onStart }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="w-full bg-white/60 backdrop-blur-sm rounded-3xl p-8 shadow-lg space-y-4"
+          style={{
+            width: '100%',
+            backgroundColor: 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '1.5rem',
+            padding: '2rem',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+          }}
         >
-          <div className="flex items-center justify-center gap-2">
-            <Clock className="w-5 h-5 text-text-secondary" strokeWidth={2} />
-            <p className="text-text-secondary text-sm">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+            <Clock style={{ width: '1.25rem', height: '1.25rem', color: '#5A5A5A' }} strokeWidth={2} />
+            <p style={{ color: '#5A5A5A', fontSize: '0.875rem' }}>
               {formatDate(currentTime)}
             </p>
           </div>
-          <p className="text-center text-text-primary text-5xl font-mono tabular-nums tracking-tight">
+          <p style={{
+            textAlign: 'center',
+            color: '#2A2A2A',
+            fontSize: '3rem',
+            fontFamily: "'Courier New', monospace",
+            fontVariantNumeric: 'tabular-nums',
+            letterSpacing: '-0.025em',
+            fontWeight: 700
+          }}>
             {formatTime(currentTime)}
           </p>
         </motion.div>
@@ -114,9 +155,9 @@ export default function WelcomeScreen({ onStart }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="text-center"
+          style={{ textAlign: 'center' }}
         >
-          <p className="text-text-tertiary text-sm">
+          <p style={{ color: '#6A6A6A', fontSize: '0.875rem' }}>
             Toque no botão abaixo para iniciar seu registro
           </p>
         </motion.div>
@@ -129,9 +170,43 @@ export default function WelcomeScreen({ onStart }) {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onStart}
-          className="mt-4 h-16 px-8 bg-brand-red hover:bg-brand-red-hover text-white rounded-2xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl focus:shadow-xl focus:outline-none focus:ring-4 focus:ring-brand-red/30"
+          style={{
+            marginTop: '1rem',
+            height: '4rem',
+            paddingLeft: '2rem',
+            paddingRight: '2rem',
+            backgroundColor: '#E30613',
+            color: '#FFFFFF',
+            borderRadius: '1rem',
+            fontWeight: 600,
+            fontSize: '1rem',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            border: 'none',
+            cursor: 'pointer',
+            outline: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = '#B30510';
+            e.target.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = '#E30613';
+            e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+          }}
+          onFocus={(e) => {
+            e.target.style.boxShadow = '0 0 0 4px rgba(227, 6, 19, 0.3)';
+          }}
+          onBlur={(e) => {
+            e.target.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+          }}
         >
-          Começar
+          <Clock style={{ width: '1.75rem', height: '1.75rem' }} strokeWidth={2} />
+          <span style={{ lineHeight: 0 }}>Registrar Ponto</span>
         </motion.button>
 
         {/* Status */}
@@ -139,20 +214,46 @@ export default function WelcomeScreen({ onStart }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="flex items-center gap-2 text-text-secondary mt-4 bg-white/40 backdrop-blur-sm rounded-full px-6 py-2"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: '#5A5A5A',
+            marginTop: '1rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.4)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '9999px',
+            paddingLeft: '1.5rem',
+            paddingRight: '1.5rem',
+            paddingTop: '0.5rem',
+            paddingBottom: '0.5rem'
+          }}
         >
-          <div className="w-2.5 h-2.5 bg-brand-green rounded-full animate-pulse" />
-          <p className="text-xs">Sistema online e pronto</p>
+          <div style={{
+            width: '0.625rem',
+            height: '0.625rem',
+            backgroundColor: '#0F7C3E',
+            borderRadius: '9999px',
+            animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+          }} />
+          <p style={{ fontSize: '0.75rem' }}>Sistema online e pronto</p>
         </motion.div>
       </div>
 
       {/* Footer */}
-      <div className="w-full flex flex-col items-center gap-1 pb-4">
-        <p className="text-text-tertiary text-xs">
-          Versão 1.0 — acesso restrito
+      <div style={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '0.25rem',
+        paddingBottom: '1rem'
+      }}>
+        <p style={{ color: '#6A6A6A', fontSize: '0.75rem' }}>
+          Versão 1.0 — Desenvolvido por <a href="https://www.erikadario.design/" style={{ color: '#E30613', textDecoration: 'none' }}>https://www.erikadario.design/</a>
         </p>
-        <p className="text-text-footer text-xs">
-          © 2025 Scopum Locações de Equipamentos
+        <p style={{ color: '#7A7A7A', fontSize: '0.75rem' }}>
+          © 2025 Impacto Locações de Equipamentos
         </p>
       </div>
     </motion.div>

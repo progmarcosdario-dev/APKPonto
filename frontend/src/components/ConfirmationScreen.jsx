@@ -58,41 +58,77 @@ export default function ConfirmationScreen({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col items-center justify-between min-h-screen p-8 bg-brand"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: '100vh',
+        padding: '2rem',
+        backgroundColor: '#EBEBEB'
+      }}
     >
       {/* Logo com Check */}
-      <div className="w-full flex justify-center pt-4 relative">
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '1rem', position: 'relative' }}>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 150 }}
-          className="relative"
+          style={{ position: 'relative' }}
         >
           <img
             src={logo}
             alt="Scopum Logo"
-            className="w-32 h-auto rounded-2xl shadow-lg bg-white"
+            style={{
+              width: '8rem',
+              height: 'auto',
+              borderRadius: '1rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              backgroundColor: 'white'
+            }}
           />
           {/* Círculo com Check */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-            className="absolute -bottom-2 -right-2 bg-brand-green rounded-full p-2 shadow-lg"
+            style={{
+              position: 'absolute',
+              bottom: '-0.5rem',
+              right: '-0.5rem',
+              backgroundColor: '#0F7C3E',
+              borderRadius: '50%',
+              padding: '0.5rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+            }}
           >
-            <CheckCircle className="w-8 h-8 text-white" strokeWidth={2} />
+            <CheckCircle style={{ width: '2rem', height: '2rem', color: 'white', strokeWidth: 2 }} />
           </motion.div>
         </motion.div>
       </div>
 
       {/* Conteúdo */}
-      <div className="flex flex-col items-center gap-6 flex-1 justify-center max-w-md w-full">
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1.5rem',
+        flex: 1,
+        justifyContent: 'center',
+        maxWidth: '28rem',
+        width: '100%'
+      }}>
         {/* Título */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-4xl font-bold text-text-primary text-center"
+          style={{
+            fontSize: '2rem',
+            fontWeight: 700,
+            color: '#2A2A2A',
+            textAlign: 'center'
+          }}
         >
           Ponto Registrado!
         </motion.h1>
@@ -102,51 +138,130 @@ export default function ConfirmationScreen({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="w-full bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-lg space-y-5"
+          style={{
+            width: '100%',
+            backgroundColor: 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+          }}
         >
           {/* Tipo de Entrada */}
-          <div className="flex items-center gap-4">
-            <span className="text-5xl">{currentEntryInfo.emoji}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{
+              width: '3rem',
+              height: '3rem',
+              borderRadius: '50%',
+              backgroundColor: currentEntryInfo.color,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.5rem',
+              flexShrink: 0
+            }}>
+              {currentEntryInfo.emoji}
+            </div>
             <div>
-              <p className="text-text-primary font-bold text-lg">
+              <p style={{ color: '#2A2A2A', fontWeight: 700, fontSize: '1rem', margin: '0.25rem 0' }}>
                 {currentEntryInfo.label}
               </p>
-              <p className="text-text-secondary text-sm">
+              <p style={{ color: '#5A5A5A', fontSize: '0.75rem', margin: 0 }}>
                 Registro {currentEntryNumber} do dia
               </p>
             </div>
           </div>
 
           {/* Detalhes */}
-          <div className="space-y-3 pt-4 border-t border-white/40">
+          <div style={{
+            paddingTop: '1rem',
+            borderTop: '1px solid rgba(255, 255, 255, 0.4)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem'
+          }}>
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
-              className="flex items-center gap-3 text-text-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                color: '#2A2A2A'
+              }}
             >
-              <User size={18} className="text-text-secondary" strokeWidth={2} />
-              <span className="font-medium">{employeeName}</span>
+              <div style={{
+                width: '2.5rem',
+                height: '2.5rem',
+                borderRadius: '50%',
+                backgroundColor: '#E30613',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                flexShrink: 0
+              }}>
+                <User size={16} strokeWidth={2} />
+              </div>
+              <span style={{ fontWeight: 500, fontSize: '0.95rem' }}>{employeeName}</span>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.45 }}
-              className="flex items-center gap-3 text-text-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                color: '#2A2A2A'
+              }}
             >
-              <Calendar size={18} className="text-text-secondary" strokeWidth={2} />
-              <span className="font-medium capitalize">{dateStr}</span>
+              <div style={{
+                width: '2.5rem',
+                height: '2.5rem',
+                borderRadius: '50%',
+                backgroundColor: '#FFB800',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                flexShrink: 0
+              }}>
+                <Calendar size={16} strokeWidth={2} />
+              </div>
+              <span style={{ fontWeight: 500, fontSize: '0.95rem', textTransform: 'capitalize' }}>{dateStr}</span>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
-              className="flex items-center gap-3 text-text-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                color: '#2A2A2A'
+              }}
             >
-              <Clock size={18} className="text-text-secondary" strokeWidth={2} />
-              <span className="font-mono font-bold">{timestamp}</span>
+              <div style={{
+                width: '2.5rem',
+                height: '2.5rem',
+                borderRadius: '50%',
+                backgroundColor: '#6B7280',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                flexShrink: 0
+              }}>
+                <Clock size={16} strokeWidth={2} />
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem', fontFamily: 'monospace' }}>{timestamp}</span>
             </motion.div>
           </div>
         </motion.div>
@@ -156,35 +271,58 @@ export default function ConfirmationScreen({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55 }}
-          className="w-full space-y-3"
+          style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
         >
-          <p className="text-text-secondary font-medium text-sm">
+          <p style={{ color: '#5A5A5A', fontWeight: 500, fontSize: '0.875rem', margin: 0 }}>
             Registros do dia
           </p>
-          <div className="w-full h-3 bg-white/40 backdrop-blur-sm rounded-full overflow-hidden shadow-lg">
+          <div style={{
+            width: '100%',
+            height: '0.75rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.4)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '9999px',
+            overflow: 'hidden',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+          }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${progressPercentage}%` }}
               transition={{ delay: 0.7, duration: 0.8, ease: "easeOut" }}
-              className="h-full bg-gradient-to-r from-brand-green to-brand-red rounded-full"
+              style={{
+                height: '100%',
+                background: 'linear-gradient(to right, #0F7C3E, #E30613)',
+                borderRadius: '9999px'
+              }}
             />
           </div>
-          <p className="text-text-primary font-bold text-center">
+          <p style={{ color: '#2A2A2A', fontWeight: 700, textAlign: 'center', margin: 0 }}>
             {completedEntries.length} de 4 pontos
           </p>
         </motion.div>
       </div>
 
       {/* Rodapé */}
-      <div className="w-full flex flex-col items-center gap-4 pb-4">
+      <div style={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1rem',
+        paddingBottom: '1rem'
+      }}>
         {/* Countdown */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="text-text-secondary text-sm"
+          style={{
+            color: '#5A5A5A',
+            fontSize: '0.875rem',
+            margin: 0
+          }}
         >
-          Retornando em <span className="font-bold text-brand-red">{countdown}s</span>...
+          Retornando em <span style={{ fontWeight: 700, color: '#E30613' }}>{countdown}s</span>...
         </motion.p>
 
         {/* Botão Registrar Outro */}
@@ -195,7 +333,20 @@ export default function ConfirmationScreen({
           transition={{ delay: 0.85 }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="h-14 px-8 bg-brand-red hover:bg-brand-red-hover text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-brand-red/30"
+          style={{
+            height: '3.5rem',
+            paddingLeft: '2rem',
+            paddingRight: '2rem',
+            backgroundColor: '#E30613',
+            color: 'white',
+            fontWeight: 700,
+            borderRadius: '0.75rem',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '1rem',
+            transition: 'all 0.2s'
+          }}
         >
           Registrar Outro Ponto
         </motion.button>

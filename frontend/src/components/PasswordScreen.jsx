@@ -35,46 +35,79 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col items-center justify-between min-h-screen p-8 bg-brand"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: '100vh',
+        padding: '2rem',
+        backgroundColor: '#EBEBEB'
+      }}
     >
       {/* Logo */}
-      <div className="w-full flex justify-center pt-4">
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '1rem' }}>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 150 }}
-          className="relative"
+          style={{ position: 'relative' }}
         >
           <img
             src={logo}
             alt="Scopum Logo"
-            className="w-32 h-auto rounded-2xl shadow-lg bg-white"
+            style={{
+              width: '8rem',
+              height: 'auto',
+              borderRadius: '1rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              backgroundColor: 'white'
+            }}
           />
         </motion.div>
       </div>
 
       {/* Conteúdo Central */}
-      <div className="flex flex-col items-center gap-8 flex-1 justify-center max-w-md w-full">
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '2rem',
+        flex: 1,
+        justifyContent: 'center',
+        maxWidth: '28rem',
+        width: '100%'
+      }}>
         {/* Ícone */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15, type: "spring", stiffness: 150 }}
-          className="flex items-center justify-center w-20 h-20 rounded-full bg-white/60 backdrop-blur-sm shadow-lg"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '5rem',
+            height: '5rem',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(4px)',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+          }}
         >
-          <Lock className="w-10 h-10 text-brand-red" strokeWidth={2} />
+          <Lock style={{ width: '2.5rem', height: '2.5rem', color: '#E30613', strokeWidth: 2 }} />
         </motion.div>
 
         {/* Formulário */}
-        <form onSubmit={handleSubmit} className="w-full space-y-6">
+        <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {/* Label */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-center"
+            style={{ textAlign: 'center' }}
           >
-            <label className="text-text-primary font-semibold text-lg">
+            <label style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '1.125rem' }}>
               Digite sua senha
             </label>
           </motion.div>
@@ -84,14 +117,32 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 shadow-lg"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(4px)',
+              borderRadius: '1rem',
+              padding: '1rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              border: password.length > 0 ? '2px solid #E30613' : 'none'
+            }}
           >
             <input
               type="password"
               value={password}
-              onChange={() => {}} // Controlado apenas via botões
+              onChange={() => {}}
               placeholder="●●●●●●"
-              className="w-full text-center text-3xl tracking-widest font-mono text-text-primary bg-transparent border-none outline-none placeholder:text-text-secondary/30 disabled:cursor-default"
+              style={{
+                width: '100%',
+                textAlign: 'center',
+                fontSize: '1.875rem',
+                letterSpacing: '0.1em',
+                fontFamily: 'monospace',
+                color: '#2A2A2A',
+                backgroundColor: 'transparent',
+                border: 'none',
+                outline: 'none',
+                paddingRight: '1rem'
+              }}
               disabled
             />
           </motion.div>
@@ -101,7 +152,16 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
             <motion.p
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-red-500 text-sm text-center font-medium bg-red-50/50 backdrop-blur-sm rounded-lg p-3"
+              style={{
+                color: '#DC2626',
+                fontSize: '0.875rem',
+                textAlign: 'center',
+                fontWeight: 500,
+                backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                backdropFilter: 'blur(4px)',
+                borderRadius: '0.5rem',
+                padding: '0.75rem'
+              }}
             >
               {error}
             </motion.p>
@@ -112,7 +172,11 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="grid grid-cols-3 gap-3"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '0.75rem'
+            }}
           >
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num, idx) => (
               <motion.button
@@ -125,53 +189,99 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 disabled={password.length >= 6}
-                className="h-16 rounded-2xl bg-white/70 hover:bg-white text-text-primary font-bold text-xl shadow-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-brand-red/30"
+                style={{
+                  height: '4rem',
+                  borderRadius: '1rem',
+                  backgroundColor: password.length >= 6 ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+                  color: '#2A2A2A',
+                  fontWeight: 700,
+                  fontSize: '1.25rem',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                  border: 'none',
+                  cursor: password.length >= 6 ? 'not-allowed' : 'pointer',
+                  opacity: password.length >= 6 ? 0.4 : 1,
+                  transition: 'all 0.2s'
+                }}
               >
                 {num}
               </motion.button>
             ))}
 
-            {/* Botão Zero - ocupa coluna inteira */}
+            {/* Linha com Limpar, 0 e Delete */}
             <motion.button
-              key="0"
               type="button"
-              onClick={() => handleNumberClick('0')}
+              onClick={handleClear}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.8 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              disabled={password.length >= 6}
-              className="col-span-3 h-16 rounded-2xl bg-white/70 hover:bg-white text-text-primary font-bold text-xl shadow-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-brand-red/30"
-            >
-              0
-            </motion.button>
-          </motion.div>
-
-          {/* Botões de Ação */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.85 }}
-            className="grid grid-cols-2 gap-3"
-          >
-            <motion.button
-              type="button"
-              onClick={handleClear}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="h-14 rounded-2xl bg-white/60 hover:bg-white text-text-secondary font-semibold shadow-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-brand-red/30"
+              style={{
+                height: '4rem',
+                borderRadius: '1rem',
+                backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                color: '#E30613',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
             >
               Limpar
             </motion.button>
 
             <motion.button
               type="button"
+              onClick={() => handleNumberClick('0')}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.85 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              disabled={password.length >= 6}
+              style={{
+                height: '4rem',
+                borderRadius: '1rem',
+                backgroundColor: password.length >= 6 ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+                color: '#2A2A2A',
+                fontWeight: 700,
+                fontSize: '1.25rem',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                border: 'none',
+                cursor: password.length >= 6 ? 'not-allowed' : 'pointer',
+                opacity: password.length >= 6 ? 0.4 : 1,
+                transition: 'all 0.2s'
+              }}
+            >
+              0
+            </motion.button>
+
+            <motion.button
+              type="button"
               onClick={handleBackspace}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.9 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               disabled={password.length === 0}
-              className="h-14 rounded-2xl bg-white/60 hover:bg-white text-text-secondary shadow-lg transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-brand-red/30 flex items-center justify-center"
+              style={{
+                height: '4rem',
+                borderRadius: '1rem',
+                backgroundColor: password.length === 0 ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.6)',
+                color: '#5A5A5A',
+                fontWeight: 600,
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                border: 'none',
+                cursor: password.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: password.length === 0 ? 0.4 : 1,
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
             >
               <Delete size={20} strokeWidth={2} />
             </motion.button>
@@ -182,11 +292,23 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
             type="submit"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
+            transition={{ delay: 0.95 }}
             whileHover={isPasswordComplete ? { scale: 1.02 } : {}}
             whileTap={isPasswordComplete ? { scale: 0.98 } : {}}
             disabled={!isPasswordComplete}
-            className="w-full h-16 rounded-2xl bg-brand-red hover:bg-brand-red-hover disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-brand-red/30"
+            style={{
+              width: '100%',
+              height: '4rem',
+              borderRadius: '1rem',
+              backgroundColor: isPasswordComplete ? '#E30613' : 'rgba(227, 6, 19, 0.4)',
+              color: 'white',
+              fontWeight: 700,
+              fontSize: '1.125rem',
+              boxShadow: isPasswordComplete ? '0 10px 15px -3px rgba(227, 6, 19, 0.3)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              border: 'none',
+              cursor: isPasswordComplete ? 'pointer' : 'not-allowed',
+              transition: 'all 0.2s'
+            }}
           >
             Confirmar
           </motion.button>
@@ -197,17 +319,30 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.95 }}
-        className="w-full flex justify-center pb-4"
+        transition={{ delay: 1.0 }}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingBottom: '1rem' }}
       >
         <motion.button
           onClick={onCancel}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="inline-flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors duration-200"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: '#5A5A5A',
+            backgroundColor: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '1rem',
+            fontWeight: 500,
+            transition: 'color 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.color = '#2A2A2A'}
+          onMouseLeave={(e) => e.currentTarget.style.color = '#5A5A5A'}
         >
           <ArrowLeft size={20} strokeWidth={2} />
-          <span className="font-medium">Voltar</span>
+          <span>Voltar</span>
         </motion.button>
       </motion.div>
     </motion.div>

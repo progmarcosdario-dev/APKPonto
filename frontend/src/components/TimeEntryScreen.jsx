@@ -119,62 +119,127 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex flex-col items-center justify-between min-h-screen p-8 bg-brand"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: '100vh',
+        padding: '2rem',
+        backgroundColor: '#EBEBEB'
+      }}
     >
       {/* Logo */}
-      <div className="w-full flex justify-center pt-4">
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '1rem' }}>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 150 }}
-          className="relative"
+          style={{ position: 'relative' }}
         >
           <img
             src={logo}
             alt="Scopum Logo"
-            className="w-32 h-auto rounded-2xl shadow-lg bg-white"
+            style={{
+              width: '8rem',
+              height: 'auto',
+              borderRadius: '1rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              backgroundColor: 'white'
+            }}
           />
         </motion.div>
       </div>
 
       {/* Conteúdo */}
-      <div className="flex flex-col items-center gap-6 flex-1 justify-center max-w-2xl w-full">
-        {/* Informações do Usuário */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1.5rem',
+        flex: 1,
+        justifyContent: 'center',
+        maxWidth: '40rem',
+        width: '100%'
+      }}>
+        {/* Card: Registrar ponto */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            width: '100%'
+          }}
         >
-          <User size={18} className="text-text-secondary" strokeWidth={2} />
-          <span className="text-text-primary font-medium">{employeeName}</span>
-        </motion.div>
+          <h3 style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.875rem', margin: 0 }}>Registrar ponto</h3>
 
-        {/* Data e Hora */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white/60 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg w-full"
-        >
-          <div className="flex items-center gap-4">
-            <Clock size={18} className="text-text-secondary flex-shrink-0" strokeWidth={2} />
-            <div className="flex-1">
-              <p className="text-text-secondary text-sm">{dateStr}</p>
-              <p className="text-text-primary text-2xl font-mono tabular-nums font-bold">{timeStr}</p>
+          {/* Funcionário */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{
+              width: '3rem',
+              height: '3rem',
+              borderRadius: '50%',
+              backgroundColor: '#E30613',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 700,
+              fontSize: '1.25rem'
+            }}>
+              <User size={20} strokeWidth={2} color="white" />
+            </div>
+            <div>
+              <p style={{ color: '#5A5A5A', fontSize: '0.75rem', margin: '0.25rem 0' }}>Funcionário</p>
+              <p style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '1rem', margin: 0 }}>{employeeName}</p>
+            </div>
+          </div>
+
+          {/* Data e Hora */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{
+              width: '3rem',
+              height: '3rem',
+              borderRadius: '50%',
+              backgroundColor: '#FFB800',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 700
+            }}>
+              <Clock size={20} strokeWidth={2} color="white" />
+            </div>
+            <div>
+              <p style={{ color: '#5A5A5A', fontSize: '0.75rem', margin: '0.25rem 0' }}>{dateStr}</p>
+              <p style={{ color: '#E30613', fontWeight: 700, fontSize: '1.125rem', fontFamily: 'monospace', margin: 0 }}>{timeStr}</p>
             </div>
           </div>
         </motion.div>
 
         {/* Título */}
-        <motion.h1
+        <motion.h2
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="text-text-primary font-bold text-xl text-center mt-2"
+          transition={{ delay: 0.2 }}
+          style={{
+            color: '#2A2A2A',
+            fontWeight: 700,
+            fontSize: '1rem',
+            textAlign: 'center',
+            margin: '1rem 0'
+          }}
         >
-          Selecione o tipo de ponto
-        </motion.h1>
+          Tipo de ponto
+        </motion.h2>
 
         {/* Alerta de Duplicata */}
         <AnimatePresence>
@@ -183,20 +248,35 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              className="w-full bg-red-100/80 backdrop-blur-sm border border-red-300 rounded-2xl p-4 flex items-center gap-3"
+              style={{
+                width: '100%',
+                backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                backdropFilter: 'blur(4px)',
+                border: '1px solid rgb(252, 165, 165)',
+                borderRadius: '1rem',
+                padding: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem'
+              }}
             >
-              <span className="text-2xl">⚠️</span>
-              <span className="text-red-800 font-medium text-sm">{duplicateAlert}</span>
+              <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+              <span style={{ color: '#991B1B', fontWeight: 500, fontSize: '0.875rem' }}>{duplicateAlert}</span>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Grid de Tipos */}
+        {/* Lista de Tipos - Cards Verticais */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="grid grid-cols-2 gap-4 w-full"
+          transition={{ delay: 0.25 }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem',
+            width: '100%'
+          }}
         >
           {entryTypes.map((type, idx) => {
             const isEnabled = isEntryTypeEnabled(type.id);
@@ -206,37 +286,113 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
               <motion.button
                 key={type.id}
                 onClick={() => handleTypeClick(type.id)}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.35 + (idx * 0.05) }}
-                whileHover={isEnabled ? { scale: 1.05 } : {}}
-                whileTap={isEnabled ? { scale: 0.95 } : {}}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + (idx * 0.05) }}
+                whileHover={isEnabled ? { scale: 1.02 } : {}}
+                whileTap={isEnabled ? { scale: 0.98 } : {}}
                 disabled={!isEnabled}
-                className={`relative h-32 rounded-2xl shadow-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-brand-red/30 ${
-                  selectedType === type.id
-                    ? 'bg-brand-red text-white ring-4 ring-brand-red/50'
-                    : 'bg-white/70 hover:bg-white text-text-primary'
-                } ${!isEnabled ? 'opacity-40 cursor-not-allowed' : ''}`}
-                title={isCompleted ? 'Este ponto já foi registrado hoje' : ''}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                  padding: '1rem',
+                  borderRadius: '0.75rem',
+                  backgroundColor: selectedType === type.id ? 'rgba(227, 6, 19, 0.1)' : 'rgba(255, 255, 255, 0.6)',
+                  border: selectedType === type.id ? '2px solid #E30613' : 'none',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  cursor: isEnabled ? 'pointer' : 'not-allowed',
+                  opacity: isEnabled ? 1 : 0.5,
+                  transition: 'all 0.2s',
+                  width: '100%',
+                  textAlign: 'left',
+                  fontSize: '1rem'
+                }}
               >
-                {/* Checkmark para completado */}
+                {/* Radio Button */}
+                <div style={{
+                  width: '1.5rem',
+                  height: '1.5rem',
+                  borderRadius: '50%',
+                  border: selectedType === type.id ? '2px solid #E30613' : '2px solid #D1D5DB',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  {selectedType === type.id && (
+                    <div style={{
+                      width: '0.75rem',
+                      height: '0.75rem',
+                      borderRadius: '50%',
+                      backgroundColor: '#E30613'
+                    }} />
+                  )}
+                </div>
+
+                {/* Ícone */}
+                <div style={{
+                  width: '2.5rem',
+                  height: '2.5rem',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  fontSize: '1.5rem',
+                  backgroundColor: type.color === 'success' ? 'rgba(15, 124, 62, 0.2)' :
+                                   type.color === 'warning' ? 'rgba(217, 119, 6, 0.2)' :
+                                   type.color === 'error' ? 'rgba(220, 38, 38, 0.2)' : 'rgba(200, 200, 200, 0.2)'
+                }}>
+                  {type.icon}
+                </div>
+
+                {/* Label */}
+                <span style={{
+                  flex: 1,
+                  color: '#2A2A2A',
+                  fontWeight: 500,
+                  fontSize: '0.95rem'
+                }}>
+                  {type.label}
+                </span>
+
+                {/* Checkmark ou Lock */}
                 {isCompleted && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute top-2 right-2 w-6 h-6 bg-brand-green rounded-full flex items-center justify-center"
+                    style={{
+                      width: '1.5rem',
+                      height: '1.5rem',
+                      borderRadius: '50%',
+                      backgroundColor: '#0F7C3E',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontWeight: 700,
+                      fontSize: '0.875rem',
+                      flexShrink: 0
+                    }}
                   >
-                    <span className="text-white font-bold text-sm">✓</span>
+                    ✓
                   </motion.div>
                 )}
-
-                {/* Conteúdo */}
-                <div className="flex flex-col items-center justify-center h-full gap-2">
-                  <span className="text-5xl">{type.icon}</span>
-                  <span className="font-semibold text-sm text-center px-2 leading-tight">
-                    {type.label}
-                  </span>
-                </div>
+                {!isEnabled && !isCompleted && (
+                  <div style={{
+                    width: '1.5rem',
+                    height: '1.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#E30613',
+                    fontSize: '1rem',
+                    flexShrink: 0
+                  }}>
+                    🔒
+                  </div>
+                )}
               </motion.button>
             );
           })}
@@ -249,17 +405,29 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="w-full space-y-3"
+              style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
             >
-              <label className="text-text-primary font-semibold text-sm">
+              <label style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.875rem', margin: 0 }}>
                 Observação (opcional)
               </label>
               <textarea
                 value={observation}
                 onChange={(e) => setObservation(e.target.value)}
                 placeholder="Digite uma observação..."
-                className="w-full p-4 rounded-2xl border-none bg-white/70 text-text-primary placeholder:text-text-secondary/50 resize-none outline-none focus:ring-4 focus:ring-brand-red/30 shadow-lg"
-                rows="3"
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  borderRadius: '0.75rem',
+                  border: 'none',
+                  backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                  color: '#2A2A2A',
+                  resize: 'none',
+                  outline: 'none',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  fontFamily: 'inherit',
+                  fontSize: '0.95rem',
+                  minHeight: '5rem'
+                }}
               />
             </motion.div>
           )}
@@ -270,17 +438,37 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="w-full flex items-center gap-4 justify-center pb-4"
+        transition={{ delay: 0.85 }}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          justifyContent: 'center',
+          paddingBottom: '1rem'
+        }}
       >
         <motion.button
           onClick={onBack}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="inline-flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors duration-200"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: '#5A5A5A',
+            backgroundColor: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '1rem',
+            fontWeight: 500,
+            transition: 'color 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.color = '#2A2A2A'}
+          onMouseLeave={(e) => e.currentTarget.style.color = '#5A5A5A'}
         >
           <ArrowLeft size={20} strokeWidth={2} />
-          <span className="font-medium">Voltar</span>
+          <span>Cancelar</span>
         </motion.button>
 
         {selectedType && (
@@ -290,9 +478,23 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             animate={{ opacity: 1, scale: 1 }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="ml-auto h-14 px-8 bg-brand-green hover:bg-brand-green-hover text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-brand-green/30"
+            style={{
+              marginLeft: 'auto',
+              height: '3.5rem',
+              paddingLeft: '2rem',
+              paddingRight: '2rem',
+              backgroundColor: '#0F7C3E',
+              color: 'white',
+              fontWeight: 700,
+              borderRadius: '0.75rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              transition: 'all 0.2s'
+            }}
           >
-            Registrar Ponto
+            Confirmar
           </motion.button>
         )}
       </motion.div>
