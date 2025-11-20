@@ -164,23 +164,30 @@ async function registrarPontoFirebird(dados: DadosPonto): Promise<ResultadoPonto
     // Obter hora do sistema
     const horaSistema = new Date().toTimeString().slice(0, 5);
 
+    // Garantir formato correto da data (YYYY-MM-DD para Date)
+    const dataObj = new Date(data + 'T00:00:00');
+    // Observação: se vazia, enviar null ao invés de espaço
+    const obsProcessada = observacao && observacao.trim() ? observacao : null;
+
     const sql = `
       INSERT INTO PONTO_FUNCIONARIO
         (CODIGO, FUNCIONARIO, DATA, HORA, TIPO_MARCACAO, OBSERVACAO, HORA_SISTEMA)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
 
+    console.log(`[Firebird INSERT] Código: ${proximoCodigo}, Func: ${funcionario}, Data: ${dataObj.toLocaleDateString('pt-BR')}, Hora: ${hora}, Tipo: ${tipo_marcacao}, Obs: ${obsProcessada === null ? 'NULL' : `"${obsProcessada}"`}`);
+
     await executarQuery(sql, [
       proximoCodigo,
       funcionario,
-      new Date(data),
+      dataObj,
       hora,
       tipo_marcacao,
-      observacao || null,
+      obsProcessada,
       horaSistema
     ]);
 
-    console.log(`Ponto registrado no Firebird com código: ${proximoCodigo}`);
+    console.log(`✅ Ponto registrado no Firebird com código: ${proximoCodigo}`);
 
     return {
       codigo: proximoCodigo,

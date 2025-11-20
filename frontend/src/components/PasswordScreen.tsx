@@ -79,7 +79,7 @@ const PasswordScreen: FC<PasswordScreenProps> = ({ onConfirm, onCancel, error })
             </p>
           )}
 
-          {/* Teclado Numérico */}
+          {/* Teclado Numérico - Atualizado */}
           <div className="password-keyboard">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
               <button
@@ -92,6 +92,16 @@ const PasswordScreen: FC<PasswordScreenProps> = ({ onConfirm, onCancel, error })
                 {num}
               </button>
             ))}
+            {/* Botão Zero */}
+            <button
+              key="0"
+              type="button"
+              onClick={() => handleNumberClick('0')}
+              className="password-number-button password-zero-wide"
+              disabled={password.length >= 6}
+            >
+              0
+            </button>
           </div>
 
           {/* Botões de Ação */}

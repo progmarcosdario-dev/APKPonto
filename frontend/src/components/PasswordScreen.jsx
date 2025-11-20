@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, ArrowLeft, Delete } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 export default function PasswordScreen({ onConfirm, onCancel, error }) {
   const [password, setPassword] = useState('');
@@ -28,9 +29,7 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
       {/* Logo */}
       <div className="password-logo-container">
         <div className="password-logo-wrapper">
-          <div className="scopum-logo">
-            📦
-          </div>
+          <img src={logo} alt="Scopum Logo" className="scopum-logo-image" />
         </div>
       </div>
 
@@ -84,6 +83,16 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
                 {num}
               </button>
             ))}
+            {/* Botão Zero */}
+            <button
+              key="0"
+              type="button"
+              onClick={() => handleNumberClick('0')}
+              className="password-number-button password-zero-wide"
+              disabled={password.length >= 6}
+            >
+              0
+            </button>
           </div>
 
           {/* Botões de Ação */}

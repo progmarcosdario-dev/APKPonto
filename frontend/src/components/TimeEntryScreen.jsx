@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, User, ArrowLeft } from 'lucide-react';
+import API from '../api/api';
+import logo from '../assets/logo.png';
 
 export default function TimeEntryScreen({ employeeName, onSave, onBack, completedEntries }) {
   const [selectedType, setSelectedType] = useState(null);
   const [observation, setObservation] = useState('');
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [duplicateAlert, setDuplicateAlert] = useState(null);
+  const [entryTypes, setEntryTypes] = useState([]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -12,6 +16,36 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Carregar tipos de marcação do Firebird
+  useEffect(() => {
+    const carregarTipos = async () => {
+      try {
+        const response = await API.get('/ponto/tipos');
+        if (response.data && response.data.tipos) {
+          // Mapear os dados do Firebird para o formato esperado
+          const tipos = response.data.tipos.map((tipo) => ({
+            id: tipo.CODIGO,
+            label: tipo.DESCRICAO,
+            icon: getIconForType(tipo.CODIGO),
+            color: getColorForType(tipo.CODIGO),
+          }));
+          setEntryTypes(tipos);
+        }
+      } catch (erro) {
+        console.error('Erro ao carregar tipos de marcação:', erro);
+        // Fallback: usar tipos padrão se houver erro
+        setEntryTypes([
+          { id: 1, label: 'Início expediente', icon: '🟢', color: 'success' },
+          { id: 2, label: 'Saída intervalo', icon: '🟡', color: 'warning' },
+          { id: 3, label: 'Retorno intervalo', icon: '🟡', color: 'warning' },
+          { id: 4, label: 'Final expediente', icon: '🔴', color: 'error' },
+        ]);
+      }
+    };
+
+    carregarTipos();
   }, []);
 
   const formatDateTime = (date) => {
@@ -31,33 +65,43 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
 
   const { dateStr, timeStr } = formatDateTime(currentDateTime);
 
-  const entryTypes = [
-    { id: 'start', label: 'Início expediente', icon: '🟢', color: 'success' },
-    { id: 'break_start', label: 'Saída intervalo', icon: '🟡', color: 'warning' },
-    { id: 'break_end', label: 'Retorno intervalo', icon: '🟡', color: 'warning' },
-    { id: 'end', label: 'Final expediente', icon: '🔴', color: 'error' },
-  ];
+  const getIconForType = (typeId) => {
+    const iconMap = {
+      1: '🟢',
+      2: '🟡',
+      3: '🟡',
+      4: '🔴',
+    };
+    return iconMap[typeId] || '⚪';
+  };
+
+  const getColorForType = (typeId) => {
+    const colorMap = {
+      1: 'success',
+      2: 'warning',
+      3: 'warning',
+      4: 'error',
+    };
+    return colorMap[typeId] || 'neutral';
+  };
 
   const isEntryTypeEnabled = (typeId) => {
-    if (typeId === 'start') {
-      return !completedEntries.includes('start');
-    }
-    if (typeId === 'break_start') {
-      return completedEntries.includes('start') && !completedEntries.includes('break_start');
-    }
-    if (typeId === 'break_end') {
-      return completedEntries.includes('break_start') && !completedEntries.includes('break_end');
-    }
-    if (typeId === 'end') {
-      const hasStart = completedEntries.includes('start');
-      const hasBreakStart = completedEntries.includes('break_start');
-      const hasBreakEnd = completedEntries.includes('break_end');
-      const alreadyEnded = completedEntries.includes('end');
+    // Não permitir registrar o mesmo tipo duas vezes
+    return !completedEntries.includes(typeId);
+  };
 
-      if (alreadyEnded) return false;
-      return hasStart && (!hasBreakStart || hasBreakEnd);
+  const handleTypeClick = (typeId) => {
+    const isEnabled = isEntryTypeEnabled(typeId);
+
+    if (!isEnabled) {
+      // Mostrar alerta se já foi registrado
+      setDuplicateAlert(`Este ponto já foi registrado hoje!`);
+      setTimeout(() => setDuplicateAlert(null), 3000);
+      return;
     }
-    return false;
+
+    setSelectedType(typeId);
+    setDuplicateAlert(null);
   };
 
   const handleSave = () => {
@@ -73,9 +117,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
       {/* Logo */}
       <div className="time-entry-logo-container">
         <div className="time-entry-logo-wrapper">
-          <div className="scopum-logo">
-            📦
-          </div>
+          <img src={logo} alt="Scopum Logo" className="scopum-logo-image" />
         </div>
       </div>
 
@@ -99,6 +141,13 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
         {/* Título */}
         <h1 className="time-entry-title">Selecione o tipo de ponto</h1>
 
+        {/* Alerta de Duplicata */}
+        {duplicateAlert && (
+          <div className="time-entry-alert">
+            <span>⚠️ {duplicateAlert}</span>
+          </div>
+        )}
+
         {/* Grid de Tipos */}
         <div className="time-entry-types-grid">
           {entryTypes.map((type) => {
@@ -108,13 +157,14 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             return (
               <button
                 key={type.id}
-                onClick={() => isEnabled && setSelectedType(type.id)}
+                onClick={() => handleTypeClick(type.id)}
                 className={`time-entry-type-card ${
                   selectedType === type.id ? 'active' : ''
                 } ${!isEnabled ? 'disabled' : ''} ${
                   isCompleted ? 'completed' : ''
                 }`}
                 disabled={!isEnabled}
+                title={isCompleted ? 'Este ponto já foi registrado hoje' : ''}
               >
                 <span className="time-entry-type-emoji">{type.icon}</span>
                 <span className="time-entry-type-label">{type.label}</span>

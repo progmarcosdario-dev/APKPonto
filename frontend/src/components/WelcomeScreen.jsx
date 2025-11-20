@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 export default function WelcomeScreen({ onStart }) {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -47,9 +48,7 @@ export default function WelcomeScreen({ onStart }) {
       {/* Logo */}
       <div className="welcome-logo-container">
         <div className="welcome-logo-wrapper">
-          <div className="scopum-logo">
-            📦
-          </div>
+          <img src={logo} alt="Scopum Logo" className="scopum-logo-image" />
         </div>
       </div>
 

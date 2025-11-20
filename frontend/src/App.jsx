@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
 import PasswordScreen from './components/PasswordScreen.jsx';
@@ -17,7 +17,6 @@ function App() {
   const [funcionario, setFuncionario] = useState(null);
 
   // Valores para teste/desenvolvimento
-  const CORRECT_PASSWORD = '123456'; // Usar password real do backend
   const EMPLOYEE_NAME = 'Funcionário';
 
   const handleStart = () => {
@@ -28,8 +27,26 @@ function App() {
   const handlePasswordConfirm = async (password) => {
     try {
       const response = await API.post('/auth/login', { senha: password });
-      if (response.data) {
-        setFuncionario({ codigo: response.data.codigo, nome: response.data.nome });
+      if (response.data && response.data.funcionario) {
+        const codigo = response.data.funcionario.codigo;
+
+        setFuncionario({
+          codigo: codigo,
+          nome: response.data.funcionario.nome
+        });
+
+        // Buscar histórico de hoje
+        const hoje = new Date().toISOString().split('T')[0];
+        try {
+          const historicoResponse = await API.get(`/ponto/historico/${codigo}?data=${hoje}`);
+          if (historicoResponse.data && historicoResponse.data.registros) {
+            const tipos = historicoResponse.data.registros.map(r => r.tipo_marcacao);
+            setCompletedEntries(tipos);
+          }
+        } catch (erro) {
+          console.log('Erro ao buscar histórico:', erro);
+        }
+
         setPasswordError('');
         setCurrentScreen('entry');
       }
@@ -52,11 +69,18 @@ function App() {
         second: '2-digit',
       });
 
+      // Formatar data como YYYY-MM-DD
+      const data = now.toISOString().split('T')[0];
+      // Formatar hora como HH:MM
+      const hora = now.toTimeString().slice(0, 5);
+
       // Enviar para backend
-      const response = await API.post('/ponto/registrar', {
-        codigo: funcionario?.codigo || '',
-        tipo: type,
-        observacao: observation,
+      await API.post('/ponto/registrar', {
+        funcionario_codigo: funcionario?.codigo || '',
+        tipo_marcacao: type,
+        data: data,
+        hora: hora,
+        observacao: observation || '',
       });
 
       setRegistrationData({

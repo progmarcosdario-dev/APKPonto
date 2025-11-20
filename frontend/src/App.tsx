@@ -18,7 +18,7 @@ interface RegistrationData {
 
 type ScreenType = 'welcome' | 'password' | 'entry' | 'confirmation';
 
-function App(): JSX.Element {
+function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('welcome');
   const [passwordError, setPasswordError] = useState<string>('');
   const [registrationData, setRegistrationData] = useState<RegistrationData>({

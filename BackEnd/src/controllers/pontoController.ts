@@ -25,7 +25,7 @@ async function obterTiposMarcacao(req: Request, res: Response): Promise<any> {
 
 // Registrar ponto
 async function registrarPonto(req: Request, res: Response): Promise<any> {
-  const { funcionario_codigo, tipo_marcacao, observacao } = req.body;
+  const { funcionario_codigo, tipo_marcacao, data, hora, observacao } = req.body;
 
   if (!funcionario_codigo || !tipo_marcacao) {
     return res.status(400).json({
@@ -35,15 +35,21 @@ async function registrarPonto(req: Request, res: Response): Promise<any> {
   }
 
   try {
+    // Usar data/hora do cliente ou gerar automaticamente
     const agora = new Date();
-    const data = agora.toISOString().split('T')[0];
-    const hora = agora.toTimeString().slice(0, 5);
+    const dataRegistro = data || agora.toISOString().split('T')[0];
+    const horaRegistro = hora || agora.toTimeString().slice(0, 5);
+
+    // Observação vazia como string, não null
+    const obs = observacao || '';
+
+    console.log(`[pontoController] Dados recebidos: func=${funcionario_codigo}, tipo=${tipo_marcacao}, data=${dataRegistro}, hora=${horaRegistro}, obs="${obs}"`);
 
     // Registrar no SQLite local
     db.run(
       `INSERT INTO ponto_funcionario (funcionario_codigo, tipo_marcacao, data, hora, observacao, sincronizado)
        VALUES (?, ?, ?, ?, ?, 0)`,
-      [funcionario_codigo, tipo_marcacao, data, hora, observacao || null],
+      [funcionario_codigo, tipo_marcacao, dataRegistro, horaRegistro, obs],
       async function(this: any, err: Error | null) {
         if (err) {
           return res.status(500).json({
@@ -59,9 +65,9 @@ async function registrarPonto(req: Request, res: Response): Promise<any> {
           const resultado = await firebirdDb.registrarPontoFirebird({
             funcionario: funcionario_codigo,
             tipo_marcacao: tipo_marcacao,
-            data: data,
-            hora: hora,
-            observacao: observacao
+            data: dataRegistro,
+            hora: horaRegistro,
+            observacao: obs
           });
 
           // Marcar como sincronizado

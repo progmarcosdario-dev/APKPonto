@@ -7,96 +7,123 @@
   align-items: center;
   justify-content: space-between;
   min-height: 100vh;
-  padding: var(--spacing-8);
-  background-color: #EBEBEB;
+  padding: var(--spacing-6);
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
   animation: fadeIn 0.3s ease-in-out;
 }
 
-.welcome-logo-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding-top: var(--spacing-4);
-}
-
-.welcome-logo-wrapper {
-  position: relative;
+.welcome-character {
+  font-size: 6rem;
+  margin-top: var(--spacing-8);
+  margin-bottom: var(--spacing-6);
   animation: slideDown 0.4s ease-out;
 }
 
-.scopum-logo {
-  font-size: 5rem;
-  width: 128px;
-  height: 128px;
-  background: white;
-  border-radius: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-lg);
-}
-
-.welcome-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 500px;
-}
-
-.welcome-greeting {
-  margin-bottom: var(--spacing-8);
-  animation: slideUp 0.5s ease-out 0.1s both;
-}
-
-.welcome-greeting-text {
-  font-size: var(--font-size-lg);
-  color: #666;
-  margin: 0;
-}
-
-.welcome-title {
+.welcome-main-title {
   font-size: var(--font-size-4xl);
   font-weight: 700;
   color: var(--color-neutral-900);
-  margin-bottom: var(--spacing-2);
+  margin: 0 0 var(--spacing-4) 0;
+  animation: slideUp 0.5s ease-out 0.1s both;
+}
+
+.welcome-datetime-box {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: var(--spacing-6);
   animation: slideUp 0.5s ease-out 0.2s both;
 }
 
-.welcome-subtitle {
-  font-size: var(--font-size-xl);
+.welcome-date-text {
+  font-size: var(--font-size-sm);
   color: #999;
-  margin-bottom: var(--spacing-12);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.welcome-time-text {
+  font-size: var(--font-size-4xl);
+  font-weight: 700;
+  color: var(--color-neutral-900);
+  margin: 0;
+  font-family: 'Courier New', monospace;
+}
+
+.welcome-instruction {
+  font-size: var(--font-size-base);
+  color: #666;
+  margin-bottom: var(--spacing-6);
   animation: slideUp 0.5s ease-out 0.3s both;
 }
 
-.welcome-datetime {
+.welcome-main-button {
+  background-color: #c1272d;
+  color: white;
+  border: none;
+  padding: var(--spacing-4) var(--spacing-12);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-base);
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-  margin-top: var(--spacing-8);
+  max-width: 400px;
+  min-height: 50px;
+  margin-bottom: var(--spacing-8);
+  animation: slideUp 0.5s ease-out 0.4s both;
+  box-shadow: 0 4px 12px rgba(193, 39, 45, 0.3);
 }
 
-.welcome-date-container {
+.welcome-main-button:hover {
+  background-color: #a02228;
+  box-shadow: 0 6px 16px rgba(193, 39, 45, 0.4);
+  transform: translateY(-2px);
+}
+
+.welcome-main-button:active {
+  transform: translateY(0);
+}
+
+.welcome-status {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
-  justify-content: center;
-  animation: slideUp 0.5s ease-out 0.4s both;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-8);
+  animation: slideUp 0.5s ease-out 0.5s both;
 }
 
-.welcome-clock-icon {
-  color: var(--color-primary);
-  width: 24px;
-  height: 24px;
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  animation: pulse 2s infinite;
 }
 
-.welcome-date {
-  font-size: var(--font-size-base);
+.status-text {
+  font-size: var(--font-size-sm);
   color: #666;
+}
+
+.welcome-footer {
+  text-align: center;
+  margin-top: auto;
+  animation: slideUp 0.5s ease-out 0.6s both;
+}
+
+.welcome-version {
+  font-size: var(--font-size-xs);
+  color: #999;
+  margin: 0 0 var(--spacing-1) 0;
+}
+
+.welcome-copyright {
+  font-size: var(--font-size-xs);
+  color: #999;
   margin: 0;
 }
 
@@ -241,6 +268,12 @@
   grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-4);
   animation: slideUp 0.5s ease-out 0.5s both;
+  margin-bottom: var(--spacing-6);
+}
+
+.password-keyboard .password-zero-wide {
+  grid-column: 2;
+  max-width: 120px;
 }
 
 .password-number-button {
@@ -433,6 +466,19 @@
   margin: var(--spacing-4) 0;
   text-align: center;
   animation: slideUp 0.5s ease-out 0.3s both;
+}
+
+.time-entry-alert {
+  background-color: #fff3cd;
+  border: 2px solid #ffc107;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-3) var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  color: #856404;
+  text-align: center;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  animation: slideDown 0.3s ease-out;
 }
 
 .time-entry-types-grid {
@@ -877,5 +923,20 @@
 
   .confirmation-title {
     font-size: var(--font-size-xl);
+  }
+}
+
+/* Logo Image Styles */
+.scopum-logo-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  animation: slideDown 0.4s ease-out;
+}
+
+@media (max-width: 480px) {
+  .scopum-logo-image {
+    width: 96px;
+    height: 96px;
   }
 }

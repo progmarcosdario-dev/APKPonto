@@ -1,5 +1,4 @@
 import React, { useState, useEffect, FC } from 'react';
-import { Clock } from 'lucide-react';
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -48,43 +47,38 @@ const WelcomeScreen: FC<WelcomeScreenProps> = ({ onStart }) => {
 
   return (
     <div className="welcome-screen">
-      {/* Logo */}
-      <div className="welcome-logo-container">
-        <div className="welcome-logo-wrapper">
-          <div className="scopum-logo">
-            📦
-          </div>
-        </div>
+      {/* Logo/Personagem */}
+      <div className="welcome-character">
+        🧑
       </div>
 
-      {/* Conteúdo Central */}
-      <div className="welcome-content">
-        <div className="welcome-greeting">
-          <p className="welcome-greeting-text">{greeting}</p>
-        </div>
+      {/* Título Principal */}
+      <h1 className="welcome-main-title">Registro de Ponto</h1>
 
-        <h1 className="welcome-title">Scopum</h1>
-
-        <p className="welcome-subtitle">Controle de Ponto</p>
-
-        {/* Data e Hora */}
-        <div className="welcome-datetime">
-          <div className="welcome-date-container">
-            <Clock className="welcome-clock-icon" />
-            <p className="welcome-date">{formatDate(currentTime)}</p>
-          </div>
-          <p className="welcome-time">{formatTime(currentTime)}</p>
-        </div>
+      {/* Data e Hora em Destaque */}
+      <div className="welcome-datetime-box">
+        <p className="welcome-date-text">{formatDate(currentTime)}</p>
+        <p className="welcome-time-text">{formatTime(currentTime)}</p>
       </div>
 
-      {/* Botão */}
-      <div className="welcome-button-container">
-        <button
-          onClick={onStart}
-          className="welcome-button"
-        >
-          Começar
-        </button>
+      {/* Mensagem */}
+      <p className="welcome-instruction">Toque no botão abaixo para iniciar seu registro</p>
+
+      {/* Botão Principal */}
+      <button onClick={onStart} className="welcome-main-button">
+        Registrar Ponto
+      </button>
+
+      {/* Status */}
+      <div className="welcome-status">
+        <span className="status-dot"></span>
+        <span className="status-text">Sistema online e pronto</span>
+      </div>
+
+      {/* Footer com Versão */}
+      <div className="welcome-footer">
+        <p className="welcome-version">Versão 1.0 — acesso restrito</p>
+        <p className="welcome-copyright">© 2025 Impacto Locações de Equipamentos</p>
       </div>
     </div>
   );

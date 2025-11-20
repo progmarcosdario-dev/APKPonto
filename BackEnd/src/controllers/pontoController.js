@@ -20,7 +20,9 @@ async function obterTiposMarcacao(req, res) {
 
 // Registrar ponto
 async function registrarPonto(req, res) {
-  const { funcionario_codigo, tipo_marcacao, observacao } = req.body;
+  const { funcionario_codigo, tipo_marcacao, data, hora, observacao } = req.body;
+
+  console.log('Dados recebidos:', { funcionario_codigo, tipo_marcacao, data, hora, observacao });
 
   if (!funcionario_codigo || !tipo_marcacao) {
     return res.status(400).json({
@@ -30,15 +32,19 @@ async function registrarPonto(req, res) {
   }
 
   try {
+    // Usar data/hora do cliente ou gerar automaticamente
     const agora = new Date();
-    const data = agora.toISOString().split('T')[0];
-    const hora = agora.toTimeString().slice(0, 5);
+    const dataRegistro = data || agora.toISOString().split('T')[0];
+    const horaRegistro = hora || agora.toTimeString().slice(0, 5);
+
+    // Observação vazia como string, não null
+    const obs = observacao || '';
 
     // Registrar no SQLite local
     db.run(
       `INSERT INTO ponto_funcionario (funcionario_codigo, tipo_marcacao, data, hora, observacao, sincronizado)
        VALUES (?, ?, ?, ?, ?, 0)`,
-      [funcionario_codigo, tipo_marcacao, data, hora, observacao || null],
+      [funcionario_codigo, tipo_marcacao, dataRegistro, horaRegistro, obs],
       async function(err) {
         if (err) {
           return res.status(500).json({

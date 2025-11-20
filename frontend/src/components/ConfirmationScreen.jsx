@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, Clock, User, Calendar } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 export default function ConfirmationScreen({
   employeeName,
@@ -12,10 +13,10 @@ export default function ConfirmationScreen({
   const [countdown, setCountdown] = useState(5);
 
   const entryTypesMap = {
-    start: { label: 'Início expediente', emoji: '🟢', color: '#0F7C3E' },
-    break_start: { label: 'Saída intervalo', emoji: '🟡', color: '#F59E0B' },
-    break_end: { label: 'Retorno intervalo', emoji: '🟡', color: '#F59E0B' },
-    end: { label: 'Final expediente', emoji: '🔴', color: '#E30613' },
+    1: { label: 'Início expediente', emoji: '🟢', color: '#0F7C3E' },
+    2: { label: 'Saída intervalo', emoji: '🟡', color: '#F59E0B' },
+    3: { label: 'Retorno intervalo', emoji: '🟡', color: '#F59E0B' },
+    4: { label: 'Final expediente', emoji: '🔴', color: '#E30613' },
   };
 
   const currentEntryInfo = entryTypesMap[entryType] || {
@@ -53,9 +54,7 @@ export default function ConfirmationScreen({
       {/* Logo */}
       <div className="confirmation-logo-container">
         <div className="confirmation-logo-wrapper">
-          <div className="scopum-logo">
-            📦
-          </div>
+          <img src={logo} alt="Scopum Logo" className="scopum-logo-image" />
           {/* Círculo com Check */}
           <div className="confirmation-check-circle">
             <CheckCircle className="confirmation-check-icon" />
