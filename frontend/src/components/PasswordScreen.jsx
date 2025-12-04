@@ -3,7 +3,7 @@ import { Lock, ArrowLeft, Delete } from 'lucide-react';
 import { motion } from 'framer-motion';
 import logo from '../assets/logo.png';
 
-export default function PasswordScreen({ onConfirm, onCancel, error }) {
+export default function PasswordScreen({ onConfirm, onCancel }) {
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e) => {
@@ -146,26 +146,6 @@ export default function PasswordScreen({ onConfirm, onCancel, error }) {
               disabled
             />
           </motion.div>
-
-          {/* Erro */}
-          {error && (
-            <motion.p
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{
-                color: '#DC2626',
-                fontSize: '0.875rem',
-                textAlign: 'center',
-                fontWeight: 500,
-                backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                backdropFilter: 'blur(4px)',
-                borderRadius: '0.5rem',
-                padding: '0.75rem'
-              }}
-            >
-              {error}
-            </motion.p>
-          )}
 
           {/* Teclado Numérico */}
           <motion.div

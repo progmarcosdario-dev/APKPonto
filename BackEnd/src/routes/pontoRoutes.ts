@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { obterTiposMarcacao, registrarPonto, obterHistorico } from '../controllers/pontoController';
+import { obterTiposMarcacao, registrarPonto, obterHistorico, obterProximoTipo } from '../controllers/pontoController';
 
 const router: Router = express.Router();
 
@@ -116,5 +116,48 @@ router.post('/registrar', registrarPonto);
  */
 // GET /api/ponto/historico/:funcionario_codigo - Obter histórico de ponto
 router.get('/historico/:funcionario_codigo', obterHistorico);
+
+/**
+ * @swagger
+ * /api/ponto/proximo-tipo/{funcionario_codigo}:
+ *   get:
+ *     tags:
+ *       - Ponto
+ *     summary: Obtém o próximo tipo de marcação recomendado
+ *     description: Retorna o próximo tipo de marcação esperado baseado no histórico do dia
+ *     parameters:
+ *       - in: path
+ *         name: funcionario_codigo
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: "001"
+ *       - in: query
+ *         name: data
+ *         schema:
+ *           type: string
+ *         example: "2025-11-27"
+ *         description: Data no formato YYYY-MM-DD (opcional)
+ *     responses:
+ *       200:
+ *         description: Tipo de marcação determinado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 sucesso:
+ *                   type: boolean
+ *                 tipo_marcacao:
+ *                   type: integer
+ *                   example: 2
+ *                 descricao:
+ *                   type: string
+ *                   example: "Saída intervalo"
+ *       500:
+ *         description: Erro ao determinar tipo
+ */
+// GET /api/ponto/proximo-tipo/:funcionario_codigo - Obter próximo tipo recomendado
+router.get('/proximo-tipo/:funcionario_codigo', obterProximoTipo);
 
 export default router;

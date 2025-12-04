@@ -4,6 +4,7 @@ import WelcomeScreen from './components/WelcomeScreen.jsx';
 import PasswordScreen from './components/PasswordScreen.jsx';
 import TimeEntryScreen from './components/TimeEntryScreen.jsx';
 import ConfirmationScreen from './components/ConfirmationScreen.jsx';
+import Modal from './components/Modal.jsx';
 import API from './api/api';
 
 function App() {
@@ -15,6 +16,14 @@ function App() {
   });
   const [completedEntries, setCompletedEntries] = useState([]);
   const [funcionario, setFuncionario] = useState(null);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'error',
+    confirmText: 'OK',
+    onConfirmCallback: null
+  });
 
   // Valores para teste/desenvolvimento
   const EMPLOYEE_NAME = 'Funcionário';
@@ -42,6 +51,24 @@ function App() {
           if (historicoResponse.data && historicoResponse.data.registros) {
             const tipos = historicoResponse.data.registros.map(r => r.tipo_marcacao);
             setCompletedEntries(tipos);
+
+            // Verificar se já tem todos os 4 tipos de ponto
+            if (tipos.length >= 4) {
+              setModal({
+                isOpen: true,
+                title: 'Dia Completo',
+                message: 'Você já bateu todos os pontos do dia',
+                type: 'warning',
+                confirmText: 'OK',
+                onConfirmCallback: () => {
+                  setCurrentScreen('welcome');
+                  setFuncionario(null);
+                  setCompletedEntries([]);
+                  setModal(prev => ({ ...prev, isOpen: false }));
+                }
+              });
+              return;
+            }
           }
         } catch (erro) {
           console.log('Erro ao buscar histórico:', erro);
@@ -51,16 +78,26 @@ function App() {
         setCurrentScreen('entry');
       }
     } catch (error) {
-      setPasswordError('Senha incorreta. Tente novamente.');
+      setModal({
+        isOpen: true,
+        title: 'Senha Incorreta',
+        message: 'A senha digitada está incorreta. Tente novamente.',
+        type: 'error',
+        confirmText: 'OK',
+        onConfirmCallback: () => {
+          // Fechar modal apenas, voltar a tela de senha
+          setModal(prev => ({ ...prev, isOpen: false }));
+        }
+      });
     }
   };
 
   const handlePasswordCancel = () => {
     setCurrentScreen('welcome');
-    setPasswordError('');
+    setModal({ isOpen: false, title: '', message: '', type: 'error', confirmText: 'OK' });
   };
 
-  const handleSaveEntry = async (type, observation) => {
+  const handleSaveEntry = async (type) => {
     try {
       const now = new Date();
       const timestamp = now.toLocaleTimeString('pt-BR', {
@@ -69,29 +106,77 @@ function App() {
         second: '2-digit',
       });
 
-      // Formatar data como YYYY-MM-DD
-      const data = now.toISOString().split('T')[0];
-      // Formatar hora como HH:MM
-      const hora = now.toTimeString().slice(0, 5);
-
-      // Enviar para backend
-      await API.post('/ponto/registrar', {
+      // Enviar para backend (tipo_marcacao opcional, será auto-selecionado)
+      const response = await API.post('/ponto/registrar', {
         funcionario_codigo: funcionario?.codigo || '',
-        tipo_marcacao: type,
-        data: data,
-        hora: hora,
-        observacao: observation || '',
       });
 
+      // Pegar o tipo de marcação retornado pelo backend
+      const tipoRetornado = response.data.tipo_marcacao || type;
+
+      // Verificar se há atraso
+      if (response.data.atraso?.mensagem) {
+        setModal({
+          isOpen: true,
+          title: 'Atraso Detectado',
+          message: response.data.atraso.mensagem,
+          type: 'warning',
+          confirmText: 'OK',
+          onConfirmCallback: () => {
+            setRegistrationData({
+              type: tipoRetornado,
+              timestamp: timestamp,
+            });
+            setCurrentScreen('confirmation');
+            setCompletedEntries([...completedEntries, tipoRetornado]);
+            setModal(prev => ({ ...prev, isOpen: false }));
+          }
+        });
+        return;
+      }
+
+      // Sem atraso, sucesso normal
       setRegistrationData({
-        type: type,
+        type: tipoRetornado,
         timestamp: timestamp,
       });
 
       setCurrentScreen('confirmation');
-      setCompletedEntries([...completedEntries, type]);
+      setCompletedEntries([...completedEntries, tipoRetornado]);
     } catch (error) {
       console.error('Erro ao registrar ponto:', error);
+      // Verificar se é erro de duplicata
+      if (error.response?.data?.erro === 'DUPLICATA_10_MINUTOS') {
+        setModal({
+          isOpen: true,
+          title: 'Registro Recente',
+          message: 'Você já bateu o ponto nos últimos 10 minutos!',
+          type: 'warning',
+          confirmText: 'OK',
+          onConfirmCallback: () => {
+            setCurrentScreen('welcome');
+            setFuncionario(null);
+            setCompletedEntries([]);
+            setRegistrationData({ type: '', timestamp: '' });
+            setModal(prev => ({ ...prev, isOpen: false }));
+          }
+        });
+      } else {
+        setModal({
+          isOpen: true,
+          title: 'Erro ao Registrar',
+          message: error.response?.data?.mensagem || error.message || 'Erro desconhecido',
+          type: 'error',
+          confirmText: 'OK',
+          onConfirmCallback: () => {
+            setCurrentScreen('welcome');
+            setFuncionario(null);
+            setCompletedEntries([]);
+            setRegistrationData({ type: '', timestamp: '' });
+            setModal(prev => ({ ...prev, isOpen: false }));
+          }
+        });
+      }
     }
   };
 
@@ -113,6 +198,21 @@ function App() {
 
   return (
     <div className="app-container">
+      <Modal
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        confirmText={modal.confirmText}
+        onConfirm={() => {
+          if (modal.onConfirmCallback) {
+            modal.onConfirmCallback();
+          } else {
+            setModal(prev => ({ ...prev, isOpen: false }));
+          }
+        }}
+      />
+
       {currentScreen === 'welcome' && (
         <WelcomeScreen key="welcome" onStart={handleStart} />
       )}
@@ -122,7 +222,6 @@ function App() {
           key="password"
           onConfirm={handlePasswordConfirm}
           onCancel={handlePasswordCancel}
-          error={passwordError}
         />
       )}
 

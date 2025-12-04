@@ -5,11 +5,20 @@ import API from '../api/api';
 import logo from '../assets/logo.png';
 
 export default function TimeEntryScreen({ employeeName, onSave, onBack, completedEntries }) {
-  const [selectedType, setSelectedType] = useState(null);
-  const [observation, setObservation] = useState('');
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
-  const [duplicateAlert, setDuplicateAlert] = useState(null);
-  const [entryTypes, setEntryTypes] = useState([]);
+  const [alertMessage, setAlertMessage] = useState(null);
+  const [alertType, setAlertType] = useState('error'); // 'error' ou 'warning'
+  const [isLoading, setIsLoading] = useState(false);
+  const [autoSelectedType, setAutoSelectedType] = useState(null);
+  const [typeLabel, setTypeLabel] = useState('');
+
+  // Mapa de tipos para labels
+  const tipoMarcacaoMap = {
+    1: { label: 'Início expediente', icon: '🟢', color: 'success' },
+    2: { label: 'Saída intervalo', icon: '🟡', color: 'warning' },
+    3: { label: 'Retorno intervalo', icon: '🟡', color: 'warning' },
+    4: { label: 'Final expediente', icon: '🔴', color: 'error' }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -19,35 +28,27 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
     return () => clearInterval(timer);
   }, []);
 
-  // Carregar tipos de marcação do Firebird
+  // Determinar tipo auto-selecionado baseado no histórico
   useEffect(() => {
-    const carregarTipos = async () => {
-      try {
-        const response = await API.get('/ponto/tipos');
-        if (response.data && response.data.tipos) {
-          // Mapear os dados do Firebird para o formato esperado
-          const tipos = response.data.tipos.map((tipo) => ({
-            id: tipo.CODIGO,
-            label: tipo.DESCRICAO,
-            icon: getIconForType(tipo.CODIGO),
-            color: getColorForType(tipo.CODIGO),
-          }));
-          setEntryTypes(tipos);
-        }
-      } catch (erro) {
-        console.error('Erro ao carregar tipos de marcação:', erro);
-        // Fallback: usar tipos padrão se houver erro
-        setEntryTypes([
-          { id: 1, label: 'Início expediente', icon: '🟢', color: 'success' },
-          { id: 2, label: 'Saída intervalo', icon: '🟡', color: 'warning' },
-          { id: 3, label: 'Retorno intervalo', icon: '🟡', color: 'warning' },
-          { id: 4, label: 'Final expediente', icon: '🔴', color: 'error' },
-        ]);
-      }
+    const determinarTipo = () => {
+      const sequencia = {
+        0: 1, // Nenhum registro = Início
+        1: 2, // Início -> Saída intervalo
+        2: 3, // Saída intervalo -> Retorno intervalo
+        3: 4, // Retorno intervalo -> Final
+        4: 1  // Final -> Início (novo dia)
+      };
+
+      // Ordenar completedEntries e pegar o último
+      const proximoIdx = completedEntries.length;
+      const proximoTipo = sequencia[proximoIdx] || 1;
+
+      setAutoSelectedType(proximoTipo);
+      setTypeLabel(tipoMarcacaoMap[proximoTipo]?.label || 'Tipo desconhecido');
     };
 
-    carregarTipos();
-  }, []);
+    determinarTipo();
+  }, [completedEntries]);
 
   const formatDateTime = (date) => {
     const dateStr = date.toLocaleDateString('pt-BR', {
@@ -66,50 +67,21 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
 
   const { dateStr, timeStr } = formatDateTime(currentDateTime);
 
-  const getIconForType = (typeId) => {
-    const iconMap = {
-      1: '🟢',
-      2: '🟡',
-      3: '🟡',
-      4: '🔴',
-    };
-    return iconMap[typeId] || '⚪';
-  };
-
-  const getColorForType = (typeId) => {
-    const colorMap = {
-      1: 'success',
-      2: 'warning',
-      3: 'warning',
-      4: 'error',
-    };
-    return colorMap[typeId] || 'neutral';
-  };
-
-  const isEntryTypeEnabled = (typeId) => {
-    // Não permitir registrar o mesmo tipo duas vezes
-    return !completedEntries.includes(typeId);
-  };
-
-  const handleTypeClick = (typeId) => {
-    const isEnabled = isEntryTypeEnabled(typeId);
-
-    if (!isEnabled) {
-      // Mostrar alerta se já foi registrado
-      setDuplicateAlert(`Este registro já foi feito!`);
-      setTimeout(() => setDuplicateAlert(null), 3000);
+  const handleConfirm = async () => {
+    // Não permitir confirmar se o dia está completo
+    if (completedEntries.length >= 4 || !autoSelectedType) {
       return;
     }
 
-    setSelectedType(typeId);
-    setDuplicateAlert(null);
-  };
-
-  const handleSave = () => {
-    if (selectedType) {
-      onSave(selectedType, observation);
-      setSelectedType(null);
-      setObservation('');
+    setIsLoading(true);
+    try {
+      await onSave(autoSelectedType);
+    } catch (error) {
+      console.error('Erro ao confirmar:', error);
+      setAlertMessage(error.message || 'Erro ao registrar ponto');
+      setAlertType('error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -123,7 +95,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'flex-start',
+        justifyContent: 'space-between',
         minHeight: '100vh',
         padding: '0.75rem 2rem',
         backgroundColor: '#EBEBEB',
@@ -157,14 +129,13 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '0.3rem',
-        justifyContent: 'flex-start',
+        gap: '1rem',
+        justifyContent: 'center',
         maxWidth: '40rem',
         width: '100%',
-        overflow: 'hidden',
-        paddingBottom: '0.3rem'
+        overflow: 'hidden'
       }}>
-        {/* Card: Registrar ponto */}
+        {/* Card: Informações */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -182,8 +153,6 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             flexShrink: 0
           }}
         >
-          <h3 style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.75rem', margin: 0 }}>Registrar ponto</h3>
-
           {/* Funcionário */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <div style={{
@@ -229,35 +198,18 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
           </div>
         </motion.div>
 
-        {/* Título */}
-        <motion.h2
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          style={{
-            color: '#2A2A2A',
-            fontWeight: 700,
-            fontSize: '0.85rem',
-            textAlign: 'center',
-            margin: '0.2rem 0',
-            flexShrink: 0
-          }}
-        >
-          Tipo de ponto
-        </motion.h2>
-
-        {/* Alerta de Duplicata */}
+        {/* Alerta de Mensagem */}
         <AnimatePresence>
-          {duplicateAlert && (
+          {alertMessage && (
             <motion.div
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               style={{
                 width: '100%',
-                backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                backgroundColor: alertType === 'error' ? 'rgba(220, 38, 38, 0.1)' : 'rgba(217, 119, 6, 0.1)',
                 backdropFilter: 'blur(4px)',
-                border: '1px solid rgb(252, 165, 165)',
+                border: `1px solid ${alertType === 'error' ? 'rgb(252, 165, 165)' : 'rgb(251, 191, 126)'}`,
                 borderRadius: '1rem',
                 padding: '1rem',
                 display: 'flex',
@@ -265,13 +217,13 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                 gap: '0.75rem'
               }}
             >
-              <span style={{ fontSize: '1.5rem' }}>⚠️</span>
-              <span style={{ color: '#991B1B', fontWeight: 500, fontSize: '0.875rem' }}>{duplicateAlert}</span>
+              <span style={{ fontSize: '1.5rem' }}>{alertType === 'error' ? '❌' : '⚠️'}</span>
+              <span style={{ color: alertType === 'error' ? '#991B1B' : '#B45309', fontWeight: 500, fontSize: '0.875rem' }}>{alertMessage}</span>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Lista de Tipos - Cards Verticais */}
+        {/* Tipo Auto-Selecionado */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -279,185 +231,67 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.35rem',
+            alignItems: 'center',
+            gap: '0.75rem',
             width: '100%'
           }}
         >
-          {entryTypes.map((type, idx) => {
-            const isEnabled = isEntryTypeEnabled(type.id);
-            const isCompleted = completedEntries.includes(type.id);
+          <p style={{ color: '#5A5A5A', fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>Tipo de ponto</p>
 
-            return (
-              <motion.button
-                key={type.id}
-                onClick={() => handleTypeClick(type.id)}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + (idx * 0.05) }}
-                whileHover={isEnabled ? { scale: 1.02 } : {}}
-                whileTap={isEnabled ? { scale: 0.98 } : {}}
-                disabled={!isEnabled}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.55rem',
-                  borderRadius: '0.75rem',
-                  backgroundColor: selectedType === type.id ? 'rgba(227, 6, 19, 0.1)' : 'rgba(255, 255, 255, 0.6)',
-                  border: selectedType === type.id ? '2px solid #E30613' : 'none',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  cursor: isEnabled ? 'pointer' : 'not-allowed',
-                  opacity: isEnabled ? 1 : 0.5,
-                  transition: 'all 0.2s',
-                  width: '100%',
-                  textAlign: 'left',
-                  fontSize: '1rem'
-                }}
-              >
-                {/* Radio Button */}
-                <div style={{
-                  width: '1rem',
-                  height: '1rem',
-                  borderRadius: '50%',
-                  border: selectedType === type.id ? '2px solid #E30613' : '2px solid #D1D5DB',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  {selectedType === type.id && (
-                    <div style={{
-                      width: '0.5rem',
-                      height: '0.5rem',
-                      borderRadius: '50%',
-                      backgroundColor: '#E30613'
-                    }} />
-                  )}
-                </div>
-
-                {/* Ícone */}
-                <div style={{
-                  width: '1.8rem',
-                  height: '1.8rem',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  fontSize: '1rem',
-                  backgroundColor: type.color === 'success' ? 'rgba(15, 124, 62, 0.2)' :
-                                   type.color === 'warning' ? 'rgba(217, 119, 6, 0.2)' :
-                                   type.color === 'error' ? 'rgba(220, 38, 38, 0.2)' : 'rgba(200, 200, 200, 0.2)'
-                }}>
-                  {type.icon}
-                </div>
-
-                {/* Label */}
-                <span style={{
-                  flex: 1,
-                  color: '#2A2A2A',
-                  fontWeight: 500,
-                  fontSize: '0.75rem'
-                }}>
-                  {type.label}
-                </span>
-
-                {/* Checkmark ou Lock */}
-                {isCompleted && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    style={{
-                      width: '1rem',
-                      height: '1rem',
-                      borderRadius: '50%',
-                      backgroundColor: '#0F7C3E',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontWeight: 700,
-                      fontSize: '0.65rem',
-                      flexShrink: 0
-                    }}
-                  >
-                    ✓
-                  </motion.div>
-                )}
-                {!isEnabled && !isCompleted && (
-                  <div style={{
-                    width: '1rem',
-                    height: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#E30613',
-                    fontSize: '0.85rem',
-                    flexShrink: 0
-                  }}>
-                    🔒
-                  </div>
-                )}
-              </motion.button>
-            );
-          })}
-        </motion.div>
-
-        {/* Campo de Observação */}
-        <AnimatePresence>
-          {selectedType && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-            >
-              <label style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.875rem', margin: 0 }}>
-                Observação (opcional)
-              </label>
-              <textarea
-                value={observation}
-                onChange={(e) => setObservation(e.target.value)}
-                placeholder="Digite uma observação..."
-                style={{
-                  width: '100%',
-                  padding: '0.4rem',
-                  borderRadius: '0.75rem',
-                  border: 'none',
-                  backgroundColor: 'rgba(255, 255, 255, 0.6)',
-                  color: '#2A2A2A',
-                  resize: 'none',
-                  outline: 'none',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  fontFamily: 'inherit',
-                  fontSize: '0.8rem',
-                  minHeight: '1.8rem',
-                  maxHeight: '1.8rem',
-                  overflow: 'auto'
-                }}
-              />
-            </motion.div>
+          {autoSelectedType && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              backgroundColor: 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(4px)',
+              borderRadius: '1rem',
+              padding: '1.25rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              width: '100%'
+            }}>
+              <div style={{
+                width: '3rem',
+                height: '3rem',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+                backgroundColor: autoSelectedType === 1 ? 'rgba(15, 124, 62, 0.2)' :
+                                autoSelectedType === 2 || autoSelectedType === 3 ? 'rgba(217, 119, 6, 0.2)' :
+                                autoSelectedType === 4 ? 'rgba(220, 38, 38, 0.2)' : 'rgba(200, 200, 200, 0.2)',
+                flexShrink: 0
+              }}>
+                {tipoMarcacaoMap[autoSelectedType]?.icon || '⚪'}
+              </div>
+              <div>
+                <p style={{ color: '#5A5A5A', fontSize: '0.75rem', margin: '0.1rem 0' }}>Próximo ponto</p>
+                <p style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.95rem', margin: 0 }}>{typeLabel}</p>
+              </div>
+            </div>
           )}
-        </AnimatePresence>
+        </motion.div>
       </div>
 
       {/* Botões */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.85 }}
+        transition={{ delay: 0.35 }}
         style={{
           width: '100%',
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem',
           justifyContent: 'center',
-          paddingTop: '0',
+          paddingTop: '0.5rem',
           flexShrink: 0
         }}
       >
         <motion.button
           onClick={onBack}
+          disabled={isLoading}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           style={{
@@ -467,44 +301,45 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             color: '#5A5A5A',
             backgroundColor: 'transparent',
             border: 'none',
-            cursor: 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             fontSize: '0.8rem',
             fontWeight: 500,
-            transition: 'color 0.2s'
+            transition: 'color 0.2s',
+            opacity: isLoading ? 0.5 : 1
           }}
-          onMouseEnter={(e) => e.currentTarget.style.color = '#2A2A2A'}
-          onMouseLeave={(e) => e.currentTarget.style.color = '#5A5A5A'}
+          onMouseEnter={(e) => !isLoading && (e.currentTarget.style.color = '#2A2A2A')}
+          onMouseLeave={(e) => !isLoading && (e.currentTarget.style.color = '#5A5A5A')}
         >
           <ArrowLeft size={16} strokeWidth={2} />
           <span>Cancelar</span>
         </motion.button>
 
-        {selectedType && (
-          <motion.button
-            onClick={handleSave}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            style={{
-              marginLeft: 'auto',
-              height: '2.6rem',
-              paddingLeft: '1.25rem',
-              paddingRight: '1.25rem',
-              backgroundColor: '#0F7C3E',
-              color: 'white',
-              fontWeight: 700,
-              borderRadius: '0.75rem',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              transition: 'all 0.2s'
-            }}
-          >
-            Confirmar
-          </motion.button>
-        )}
+        <motion.button
+          onClick={handleConfirm}
+          disabled={!autoSelectedType || isLoading}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={!isLoading ? { scale: 1.02 } : {}}
+          whileTap={!isLoading ? { scale: 0.98 } : {}}
+          style={{
+            marginLeft: 'auto',
+            height: '2.6rem',
+            paddingLeft: '1.25rem',
+            paddingRight: '1.25rem',
+            backgroundColor: '#0F7C3E',
+            color: 'white',
+            fontWeight: 700,
+            borderRadius: '0.75rem',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            border: 'none',
+            cursor: !isLoading ? 'pointer' : 'not-allowed',
+            fontSize: '0.85rem',
+            transition: 'all 0.2s',
+            opacity: isLoading ? 0.7 : 1
+          }}
+        >
+          {isLoading ? '⏳ Registrando...' : 'Confirmar'}
+        </motion.button>
       </motion.div>
     </motion.div>
   );

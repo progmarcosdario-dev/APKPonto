@@ -112,6 +112,46 @@ function executarQuery(sql: string, params: any[] = []): Promise<any> {
 }
 
 /**
+ * Buscar dados completos do funcionário (incluindo horários)
+ */
+function obterDadosFuncionario(codigo: string | number): Promise<any> {
+  return new Promise((resolve, reject) => {
+    if (!pool) {
+      return reject(new Error('Firebird não está conectado.'));
+    }
+
+    const sql = `
+      SELECT
+        CODIGO,
+        NOME,
+        USUARIO_SISTEMA,
+        INICIO_SEGUNDA_SEXTA,
+        PAUSA_SEGUNDA_SEXTA,
+        RETORNO_SEGUNDA_SEXTA,
+        FINAL_SEGUNDA_SEXTA,
+        INICIO_SABADO,
+        PAUSA_SABADO,
+        RETORNO_SABADO,
+        FINAL_SABADO,
+        INICIO_DOMINGO,
+        PAUSA_DOMINGO,
+        RETORNO_DOMINGO,
+        FINAL_DOMINGO
+      FROM FUNCIONARIOS
+      WHERE CODIGO = ?
+    `;
+
+    pool.query(sql, [codigo], (err: Error | null, result: any[]) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result && result.length > 0 ? result[0] : null);
+      }
+    });
+  });
+}
+
+/**
  * Buscar funcionário pela senha (similar ao código Delphi)
  * SELECT * FROM FUNCIONARIOS WHERE SENHA_SISTEMA = '123456'
  */
@@ -200,6 +240,70 @@ async function registrarPontoFirebird(dados: DadosPonto): Promise<ResultadoPonto
 }
 
 /**
+ * Obter histórico de pontos do funcionário em uma data
+ */
+async function obterHistoricoPontos(funcionario_codigo: number, data: string): Promise<any[]> {
+  try {
+    const dataObj = new Date(data + 'T00:00:00');
+    console.log(`[obterHistoricoPontos] Buscando registros para funcionário ${funcionario_codigo}, data: ${data}, dataObj: ${dataObj.toLocaleDateString('pt-BR')}`);
+
+    const sql = `
+      SELECT CODIGO, FUNCIONARIO, DATA, HORA, TIPO_MARCACAO, OBSERVACAO
+      FROM PONTO_FUNCIONARIO
+      WHERE FUNCIONARIO = ? AND CAST(DATA AS DATE) = CAST(? AS DATE)
+      ORDER BY HORA ASC
+    `;
+
+    const resultado = await executarQuery(sql, [funcionario_codigo, dataObj]);
+    console.log(`[obterHistoricoPontos] Resultado: ${resultado?.length || 0} registros encontrados`);
+    if (resultado && resultado.length > 0) {
+      resultado.forEach((r: any, i: number) => {
+        console.log(`  [${i}] Hora: ${r.HORA}, Tipo: ${r.TIPO_MARCACAO}`);
+      });
+    }
+    return resultado || [];
+  } catch (erro) {
+    console.error('Erro ao obter histórico de pontos:', erro);
+    throw erro;
+  }
+}
+
+/**
+ * Verificar duplicata nos últimos 10 minutos
+ */
+async function verificarDuplicataRecente(funcionario_codigo: number, dataRegistro: string): Promise<boolean> {
+  try {
+    const agora = new Date();
+    const agoraEmMinutos = agora.getHours() * 60 + agora.getMinutes();
+    const dezMinutosAtrasEmMinutos = agoraEmMinutos - 10;
+
+    const dataObj = new Date(dataRegistro + 'T00:00:00');
+    const sql = `
+      SELECT HORA FROM PONTO_FUNCIONARIO
+      WHERE FUNCIONARIO = ? AND DATA = ?
+      ORDER BY HORA DESC
+      ROWS 1
+    `;
+
+    const resultado = await executarQuery(sql, [funcionario_codigo, dataObj]);
+
+    if (!resultado || resultado.length === 0) {
+      return false; // Nenhum registro no dia
+    }
+
+    const ultimaHora = resultado[0].HORA;
+    const [ultimaHoraH, ultimaHoraM] = ultimaHora.split(':').map(Number);
+    const ultimaHoraEmMinutos = ultimaHoraH * 60 + ultimaHoraM;
+
+    const diferenca = agoraEmMinutos - ultimaHoraEmMinutos;
+    return diferenca >= 0 && diferenca < 10;
+  } catch (erro) {
+    console.error('Erro ao verificar duplicata recente:', erro);
+    throw erro;
+  }
+}
+
+/**
  * Sincronizar registros pendentes com Firebird
  */
 async function sincronizarRegistrosPendentes(registros: RegistroPonto[]): Promise<SincronizacaoResult> {
@@ -249,9 +353,12 @@ function fecharConexao(): void {
 export {
   inicializarConexao,
   executarQuery,
+  obterDadosFuncionario,
   buscarFuncionarioPorSenha,
   obterTiposMarcacao,
   registrarPontoFirebird,
+  obterHistoricoPontos,
+  verificarDuplicataRecente,
   sincronizarRegistrosPendentes,
   fecharConexao,
   firebirdConfig,
