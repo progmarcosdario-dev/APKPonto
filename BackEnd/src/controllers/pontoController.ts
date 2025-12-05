@@ -168,10 +168,22 @@ async function determinarProxTipoMarcacao(funcionario_codigo: string, dataRegist
       return 1;
     }
 
-    // Sequência esperada: 1 -> 2 -> 3 -> 4 -> 1 (novo dia)
+    const diaAtual = new Date(dataRegistro).getDay(); // 0 = domingo, 6 = sábado
     const ultimoRegistro = registros[registros.length - 1];
     const ultimoTipo = ultimoRegistro.TIPO_MARCACAO;
 
+    // Para sábado (6): sequência simplificada 1 -> 4 -> 1
+    if (diaAtual === 6) {
+      const sequenciaSabado: { [key: number]: number } = {
+        1: 4, // Início -> Final expediente (sem pausa)
+        4: 1  // Final expediente -> Início (novo dia)
+      };
+      const proximoTipo = sequenciaSabado[ultimoTipo] || 1;
+      console.log(`[determinarProxTipoMarcacao] Sábado - Último tipo: ${ultimoTipo}, Próximo tipo: ${proximoTipo}`);
+      return proximoTipo;
+    }
+
+    // Para outros dias (segunda a sexta e domingo): sequência completa 1 -> 2 -> 3 -> 4 -> 1
     const sequencia: { [key: number]: number } = {
       1: 2, // Início -> Saída intervalo
       2: 3, // Saída intervalo -> Retorno intervalo
@@ -306,9 +318,15 @@ async function obterProximoTipo(req: Request, res: Response): Promise<any> {
     const dataRegistro = (data as string) || new Date().toISOString().split('T')[0];
     const registros = await firebirdDb.obterHistoricoPontos(parseInt(funcionario_codigo), dataRegistro);
 
-    // Verificar se já tem todos os 4 tipos de ponto
+    // Verificar se já completou o dia
     const tiposPresentes = new Set(registros.map((r: any) => r.TIPO_MARCACAO));
-    const diaCompleto = tiposPresentes.has(1) && tiposPresentes.has(2) && tiposPresentes.has(3) && tiposPresentes.has(4);
+    const diaAtual = new Date(dataRegistro).getDay(); // 0 = domingo, 6 = sábado
+
+    // Sábado precisa apenas de 2 tipos (1 e 4)
+    // Outros dias precisam de 4 tipos (1, 2, 3, 4)
+    const diaCompleto = diaAtual === 6
+      ? tiposPresentes.has(1) && tiposPresentes.has(4)
+      : tiposPresentes.has(1) && tiposPresentes.has(2) && tiposPresentes.has(3) && tiposPresentes.has(4);
 
     if (diaCompleto) {
       return res.json({

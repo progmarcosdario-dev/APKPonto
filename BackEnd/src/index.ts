@@ -65,9 +65,45 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Rota de teste
-app.get('/api/health', (req: Request, res: Response) => {
-  res.json({ status: 'OK', message: 'Servidor funcionando' });
+// Health Check Endpoint - Monitoramento
+app.get('/api/health', async (req: Request, res: Response) => {
+  try {
+    const startTime = Date.now();
+
+    // Verificar conexão com Firebird
+    const firebaseStatus = await firebirdDb.obterTiposMarcacao()
+      .then(() => ({ status: 'healthy', latency: Date.now() - startTime }))
+      .catch(() => ({ status: 'unhealthy', latency: Date.now() - startTime }));
+
+    const uptime = process.uptime();
+    const memoryUsage = process.memoryUsage();
+
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: `${Math.floor(uptime / 60)}m ${Math.floor(uptime % 60)}s`,
+      version: '1.0.0',
+      database: {
+        firebird: firebaseStatus.status,
+        latency: `${firebaseStatus.latency}ms`
+      },
+      memory: {
+        heap: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB / ${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
+        rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`
+      },
+      node: {
+        version: process.version,
+        platform: process.platform,
+        pid: process.pid
+      }
+    });
+  } catch (error: any) {
+    res.status(503).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 const PORT = process.env.PORT || 3001;

@@ -46,14 +46,16 @@ function App() {
 
         // Buscar histórico de hoje
         const hoje = new Date().toISOString().split('T')[0];
+        const diaAtual = new Date().getDay(); // 0 = domingo, 6 = sábado
         try {
           const historicoResponse = await API.get(`/ponto/historico/${codigo}?data=${hoje}`);
           if (historicoResponse.data && historicoResponse.data.registros) {
             const tipos = historicoResponse.data.registros.map(r => r.tipo_marcacao);
             setCompletedEntries(tipos);
 
-            // Verificar se já tem todos os 4 tipos de ponto
-            if (tipos.length >= 4) {
+            // Verificar se já tem todos os pontos: sábado = 2 tipos, outros dias = 4 tipos
+            const diaCompleto = diaAtual === 6 ? tipos.length >= 2 : tipos.length >= 4;
+            if (diaCompleto) {
               setModal({
                 isOpen: true,
                 title: 'Dia Completo',
