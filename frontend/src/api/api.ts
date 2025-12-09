@@ -1,6 +1,21 @@
 // Cliente de API para comunicação com o servidor backend
 // URL configurada para rede local (tablet e PC na mesma rede)
-const API_BASE_URL = 'http://192.168.1.76:3001/api';
+
+// Detectar host dinamicamente
+const getApiBaseUrl = (): string => {
+  const hostname = window.location.hostname;
+  const port = '3001';
+
+  // Se estiver em localhost/127.0.0.1, usa localhost
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return `http://localhost:${port}/api`;
+  }
+
+  // Caso contrário, usa o host atual
+  return `http://${hostname}:${port}/api`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Interface para registros pendentes offline
 interface RegistroPendente {

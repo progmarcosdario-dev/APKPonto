@@ -75,11 +75,13 @@ export default function WelcomeScreen({ onStart }) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
         minHeight: '100vh',
-        padding: '2rem',
+        padding: '2rem 2rem 20rem 2rem',
         backgroundColor: '#EBEBEB',
-        position: 'relative'
+        position: 'relative',
+        overflowY: 'auto',
+        overflowX: 'hidden'
       }}
     >
       {/* Botão Fullscreen - Canto Superior Direito */}
@@ -141,11 +143,8 @@ export default function WelcomeScreen({ onStart }) {
         flexDirection: 'column',
         alignItems: 'center',
         gap: '1.25rem',
-        flex: 1,
-        justifyContent: 'center',
         maxWidth: '28rem',
-        width: '100%',
-        marginTop: '-4rem'
+        width: '100%'
       }}>
 
         {/* Título */}
@@ -291,7 +290,8 @@ export default function WelcomeScreen({ onStart }) {
         flexDirection: 'column',
         alignItems: 'center',
         gap: '0.25rem',
-        paddingBottom: '1rem'
+        paddingBottom: '5rem',
+        marginTop: '4rem'
       }}>
         <p style={{ color: '#6A6A6A', fontSize: '0.75rem' }}>
           Versão 1.0 — Desenvolvido por <a href="https://www.erikadario.design/" style={{ color: '#E30613', textDecoration: 'none' }}>https://www.erikadario.design/</a>

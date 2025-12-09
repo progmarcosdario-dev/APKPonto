@@ -11,8 +11,15 @@ import swaggerSpecs from './swagger/swaggerConfig';
 
 const app: Express = express();
 
-// Middleware
-app.use(cors());
+// Middleware CORS - Permitir qualquer origem em desenvolvimento
+const corsOptions = {
+  origin: true, // Permitir qualquer origem
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Middleware de logging
