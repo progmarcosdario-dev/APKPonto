@@ -37,8 +37,8 @@ firebirdDb.inicializarConexao()
   .then(() => {
     logger.info('Firebird conectado com sucesso');
   })
-  .catch((erro) => {
-    logger.warn('Aviso: Firebird não disponível no momento', { erro: erro.message });
+  .catch((erro: any) => {
+    logger.warn('Aviso: Firebird não disponível no momento', { erro: erro?.message || String(erro) });
     logger.info('Sistema funcionará em modo offline');
   });
 
@@ -111,6 +111,11 @@ app.get('/api/health', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString()
     });
   }
+});
+
+// Status simples - apenas true/false para o Backend
+app.get('/api/status', (req: Request, res: Response) => {
+  res.json({ active: true });
 });
 
 const PORT = process.env.PORT || 3001;

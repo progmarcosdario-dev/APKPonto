@@ -239,7 +239,7 @@ async function obterTiposMarcacao(): Promise<TipoMarcacao[]> {
     cache.tiposMarcacao.dados = resultado || [];
     cache.tiposMarcacao.timestamp = Date.now();
 
-    return cache.tiposMarcacao.dados;
+    return cache.tiposMarcacao.dados as TipoMarcacao[];
   } catch (erro) {
     console.error('Erro ao obter tipos de marcação:', erro);
     throw erro;
