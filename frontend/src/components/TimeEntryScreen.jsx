@@ -266,7 +266,6 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                 {tipoMarcacaoMap[autoSelectedType]?.icon || '⚪'}
               </div>
               <div>
-                <p style={{ color: '#5A5A5A', fontSize: '0.75rem', margin: '0.1rem 0' }}>Próximo ponto</p>
                 <p style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.95rem', margin: 0 }}>{typeLabel}</p>
               </div>
             </div>
@@ -282,10 +281,10 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
         style={{
           width: '100%',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: '0.5rem',
-          justifyContent: 'center',
-          paddingTop: '0.5rem',
+          gap: '1rem',
+          paddingTop: '1rem',
           flexShrink: 0
         }}
       >
@@ -295,6 +294,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           style={{
+            alignSelf: 'flex-start',
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.3rem',
@@ -322,10 +322,10 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
           whileHover={!isLoading ? { scale: 1.02 } : {}}
           whileTap={!isLoading ? { scale: 0.98 } : {}}
           style={{
-            marginLeft: 'auto',
-            height: '2.6rem',
-            paddingLeft: '1.25rem',
-            paddingRight: '1.25rem',
+            width: '100%',
+            height: '3.5rem',
+            paddingLeft: '1.5rem',
+            paddingRight: '1.5rem',
             backgroundColor: '#0F7C3E',
             color: 'white',
             fontWeight: 700,
@@ -333,7 +333,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
             border: 'none',
             cursor: !isLoading ? 'pointer' : 'not-allowed',
-            fontSize: '0.85rem',
+            fontSize: '1.1rem',
             transition: 'all 0.2s',
             opacity: isLoading ? 0.7 : 1
           }}

@@ -54,8 +54,8 @@ async function calcularAtraso(
           const horaConfiguradaEmMinutos = converterHoraParaMinutos(horaConfigurada);
           atraso = horaRegistroEmMinutos - horaConfiguradaEmMinutos;
 
-          // Só exibe mensagem se atraso > 5 minutos
-          if (atraso > 5) {
+          // Exibe mensagem de atraso para qualquer valor > 0
+          if (atraso > 0) {
             mensagem = `Ponto batido com ${atraso} minutos de atraso.`;
           }
         }
@@ -115,15 +115,12 @@ async function calcularAtraso(
               console.log(`[calcularAtraso TIPO 3] Intervalo configurado: ${intervaloConfigurado}, Intervalo real: ${intervaloReal}`);
               console.log(`[calcularAtraso TIPO 3] Diferença: ${atraso} minutos (positivo = atrasado, negativo = cedo)`);
 
-              // Só exibe mensagem se atraso > 5 minutos (retorno atrasado)
-              if (atraso > 5) {
+              // Reporta apenas atraso (sem tolerância)
+              if (atraso > 0) {
                 mensagem = `Retorno com ${atraso} minutos de atraso.`;
                 console.log(`[calcularAtraso TIPO 3] Mensagem gerada: ${mensagem}`);
-              } else if (atraso < -5) {
-                mensagem = `Retorno ${Math.abs(atraso)} minutos antes do horário.`;
-                console.log(`[calcularAtraso TIPO 3] Retorno cedo - Sem alertas`);
               } else {
-                console.log(`[calcularAtraso TIPO 3] Retorno dentro do intervalo permitido`);
+                console.log(`[calcularAtraso TIPO 3] Sem atraso no retorno`);
               }
             } else {
               console.log(`[calcularAtraso TIPO 3] Horários não configurados`);
