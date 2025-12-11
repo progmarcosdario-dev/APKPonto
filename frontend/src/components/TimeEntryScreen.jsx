@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import API from '../api/api';
 import logo from '../assets/logo.png';
 
-export default function TimeEntryScreen({ employeeName, onSave, onBack, completedEntries }) {
+export default function TimeEntryScreen({ employeeName, employeeCode, onSave, onBack, completedEntries }) {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [alertMessage, setAlertMessage] = useState(null);
   const [alertType, setAlertType] = useState('error'); // 'error' ou 'warning'
@@ -28,26 +28,26 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
     return () => clearInterval(timer);
   }, []);
 
-  // Determinar tipo auto-selecionado baseado no histórico
+  // Determinar tipo auto-selecionado usando APENAS lógica local (sem API)
   useEffect(() => {
-    const determinarTipo = () => {
-      const sequencia = {
-        0: 1, // Nenhum registro = Início
-        1: 2, // Início -> Saída intervalo
-        2: 3, // Saída intervalo -> Retorno intervalo
-        3: 4, // Retorno intervalo -> Final
-        4: 1  // Final -> Início (novo dia)
-      };
+    console.log('[TimeEntryScreen] completedEntries:', completedEntries);
 
-      // Ordenar completedEntries e pegar o último
-      const proximoIdx = completedEntries.length;
-      const proximoTipo = sequencia[proximoIdx] || 1;
+    // Verificar dia da semana: 6 = sábado
+    const diaAtual = new Date().getDay();
+    const ehSabado = diaAtual === 6;
 
-      setAutoSelectedType(proximoTipo);
-      setTypeLabel(tipoMarcacaoMap[proximoTipo]?.label || 'Tipo desconhecido');
-    };
+    // Lógica local simples e rápida
+    const sequencia = ehSabado
+      ? { 0: 1, 1: 4 }  // Sábado: apenas 1 (início) e 4 (fim)
+      : { 0: 1, 1: 2, 2: 3, 3: 4 };  // Outros dias: 1→2→3→4
 
-    determinarTipo();
+    const proximoIdx = completedEntries.length;
+    const proximoTipo = sequencia[proximoIdx] || 1;
+
+    console.log(`[TimeEntryScreen] Dia: ${ehSabado ? 'Sábado' : 'Outro'}, Índice: ${proximoIdx}, Tipo: ${proximoTipo}`);
+
+    setAutoSelectedType(proximoTipo);
+    setTypeLabel(tipoMarcacaoMap[proximoTipo]?.label || 'Tipo desconhecido');
   }, [completedEntries]);
 
   const formatDateTime = (date) => {
@@ -170,8 +170,8 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
               <User size={18} strokeWidth={2} color="white" />
             </div>
             <div>
-              <p style={{ color: '#5A5A5A', fontSize: '0.65rem', margin: '0.1rem 0' }}>Funcionário</p>
-              <p style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.85rem', margin: 0 }}>{employeeName}</p>
+              <p style={{ color: '#5A5A5A', fontSize: '0.9rem', margin: '0.1rem 0' }}>Funcionário</p>
+              <p style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '1.2rem', margin: 0 }}>{employeeName}</p>
             </div>
           </div>
 
@@ -192,8 +192,8 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
               <Clock size={18} strokeWidth={2} color="white" />
             </div>
             <div>
-              <p style={{ color: '#5A5A5A', fontSize: '0.65rem', margin: '0.1rem 0' }}>{dateStr}</p>
-              <p style={{ color: '#E30613', fontWeight: 700, fontSize: '0.95rem', fontFamily: 'monospace', margin: 0 }}>{timeStr}</p>
+              <p style={{ color: '#5A5A5A', fontSize: '0.9rem', margin: '0.1rem 0' }}>{dateStr}</p>
+              <p style={{ color: '#E30613', fontWeight: 700, fontSize: '1.35rem', fontFamily: 'monospace', margin: 0 }}>{timeStr}</p>
             </div>
           </div>
         </motion.div>
@@ -218,7 +218,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
               }}
             >
               <span style={{ fontSize: '1.5rem' }}>{alertType === 'error' ? '❌' : '⚠️'}</span>
-              <span style={{ color: alertType === 'error' ? '#991B1B' : '#B45309', fontWeight: 500, fontSize: '0.875rem' }}>{alertMessage}</span>
+              <span style={{ color: alertType === 'error' ? '#991B1B' : '#B45309', fontWeight: 500, fontSize: '1.15rem' }}>{alertMessage}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -236,7 +236,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             width: '100%'
           }}
         >
-          <p style={{ color: '#5A5A5A', fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>Tipo de ponto</p>
+          <p style={{ color: '#5A5A5A', fontSize: '1.15rem', fontWeight: 500, margin: 0 }}>Tipo de ponto</p>
 
           {autoSelectedType && (
             <div style={{
@@ -266,7 +266,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
                 {tipoMarcacaoMap[autoSelectedType]?.icon || '⚪'}
               </div>
               <div>
-                <p style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '0.95rem', margin: 0 }}>{typeLabel}</p>
+                <p style={{ color: '#2A2A2A', fontWeight: 600, fontSize: '1.3rem', margin: 0 }}>{typeLabel}</p>
               </div>
             </div>
           )}
@@ -302,7 +302,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             backgroundColor: 'transparent',
             border: 'none',
             cursor: isLoading ? 'not-allowed' : 'pointer',
-            fontSize: '0.8rem',
+            fontSize: '1.1rem',
             fontWeight: 500,
             transition: 'color 0.2s',
             opacity: isLoading ? 0.5 : 1
@@ -333,7 +333,7 @@ export default function TimeEntryScreen({ employeeName, onSave, onBack, complete
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
             border: 'none',
             cursor: !isLoading ? 'pointer' : 'not-allowed',
-            fontSize: '1.1rem',
+            fontSize: '1.5rem',
             transition: 'all 0.2s',
             opacity: isLoading ? 0.7 : 1
           }}

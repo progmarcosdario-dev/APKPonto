@@ -71,7 +71,7 @@ interface SincronizacaoResult {
 
 // Configuração do Firebird
 const firebirdConfig: FirebirdConfig = {
-  host: process.env.FIREBIRD_HOST || 'localhost',
+  host: process.env.FIREBIRD_HOST || '127.0.0.1',
   port: parseInt(process.env.FIREBIRD_PORT || '3050'),
   database: process.env.FIREBIRD_DATABASE || 'C:\\Apta\\Dados\\APTA.FDB',
   user: process.env.FIREBIRD_USER || 'SYSDBA',
@@ -132,7 +132,7 @@ function inicializarConexao(): Promise<any> {
  * Executar query no Firebird com prepared statements e timeout
  * Otimização: Usar índices com CAST para DATE
  */
-function executarQuery(sql: string, params: any[] = [], timeoutMs: number = 30000): Promise<any> {
+function executarQuery(sql: string, params: any[] = [], timeoutMs: number = 60000): Promise<any> {
   return new Promise((resolve, reject) => {
     if (!pool) {
       return reject(new Error('Firebird não está conectado. Tente inicializar a conexão.'));
@@ -304,7 +304,6 @@ async function registrarPontoFirebird(dados: DadosPonto): Promise<ResultadoPonto
 /**
  * Obter histórico de pontos com índice otimizado
  * Otimização: Índice composto (FUNCIONARIO, DATA, TIPO_MARCACAO)
- *             CAST(DATA AS DATE) força uso de índice
  *             ORDER BY HORA DESC para pegar últimos registros primeiro
  */
 async function obterHistoricoPontos(funcionario_codigo: number, data: string): Promise<any[]> {
@@ -312,11 +311,11 @@ async function obterHistoricoPontos(funcionario_codigo: number, data: string): P
     const dataObj = new Date(data + 'T00:00:00');
     console.log(`[obterHistoricoPontos] Buscando registros para funcionário ${funcionario_codigo}, data: ${data}`);
 
-    // Query otimizada com índice composto (idx_pontos_dia_completo)
+    // Query simplificada sem CAST
     const sql = `
       SELECT CODIGO, FUNCIONARIO, DATA, HORA, TIPO_MARCACAO, OBSERVACAO
       FROM PONTO_FUNCIONARIO
-      WHERE FUNCIONARIO = ? AND CAST(DATA AS DATE) = CAST(? AS DATE)
+      WHERE FUNCIONARIO = ? AND DATA = ?
       ORDER BY HORA DESC
     `;
 

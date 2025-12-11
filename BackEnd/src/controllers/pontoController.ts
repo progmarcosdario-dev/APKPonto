@@ -157,7 +157,10 @@ async function determinarProxTipoMarcacao(funcionario_codigo: string, dataRegist
   try {
     const registros = await firebirdDb.obterHistoricoPontos(parseInt(funcionario_codigo), dataRegistro);
 
-    console.log(`[determinarProxTipoMarcacao] Funcionário ${funcionario_codigo}, Data: ${dataRegistro}, Registros: ${registros?.length || 0}`);
+    console.log(`[determinarProxTipoMarcacao] Funcionário ${funcionario_codigo}, Data: ${dataRegistro}, Registros encontrados: ${registros?.length || 0}`);
+    if (registros && registros.length > 0) {
+      console.log(`[determinarProxTipoMarcacao] Últimos registros:`, registros.map((r: any) => ({ tipo: r.TIPO_MARCACAO, hora: r.HORA })));
+    }
 
     // Se não há registros, começa com tipo 1 (Início expediente)
     if (!registros || registros.length === 0) {
@@ -169,13 +172,26 @@ async function determinarProxTipoMarcacao(funcionario_codigo: string, dataRegist
     const ultimoRegistro = registros[registros.length - 1];
     const ultimoTipo = ultimoRegistro.TIPO_MARCACAO;
 
+    console.log(`[determinarProxTipoMarcacao] Último tipo registrado: ${ultimoTipo}, dia da semana: ${diaAtual}`);
+
+    // Verificar tipos já registrados no dia para evitar duplicatas
+    const tiposPresentes = new Set(registros.map((r: any) => r.TIPO_MARCACAO));
+    console.log(`[determinarProxTipoMarcacao] Tipos presentes no dia:`, Array.from(tiposPresentes));
+
     // Para sábado (6): sequência simplificada 1 -> 4 -> 1
     if (diaAtual === 6) {
       const sequenciaSabado: { [key: number]: number } = {
         1: 4, // Início -> Final expediente (sem pausa)
         4: 1  // Final expediente -> Início (novo dia)
       };
-      const proximoTipo = sequenciaSabado[ultimoTipo] || 1;
+      let proximoTipo = sequenciaSabado[ultimoTipo] || 1;
+
+      // Se tipo já existe no dia, pular para o próximo
+      if (tiposPresentes.has(proximoTipo)) {
+        console.log(`[determinarProxTipoMarcacao] Tipo ${proximoTipo} já existe, pulando...`);
+        proximoTipo = sequenciaSabado[proximoTipo] || 1;
+      }
+
       console.log(`[determinarProxTipoMarcacao] Sábado - Último tipo: ${ultimoTipo}, Próximo tipo: ${proximoTipo}`);
       return proximoTipo;
     }
@@ -188,8 +204,18 @@ async function determinarProxTipoMarcacao(funcionario_codigo: string, dataRegist
       4: 1  // Final expediente -> Início expediente (novo dia)
     };
 
-    const proximoTipo = sequencia[ultimoTipo] || 1;
-    console.log(`[determinarProxTipoMarcacao] Último tipo: ${ultimoTipo}, Próximo tipo: ${proximoTipo}`);
+    let proximoTipo = sequencia[ultimoTipo] || 1;
+    console.log(`[determinarProxTipoMarcacao] ultimoTipo=${ultimoTipo}, sequencia[${ultimoTipo}]=${sequencia[ultimoTipo]}, proximoTipo inicial=${proximoTipo}`);
+
+    // Proteger contra race condition: se tipo já existe no dia, tentar o próximo
+    let tentativas = 0;
+    while (tiposPresentes.has(proximoTipo) && tentativas < 4) {
+      console.log(`[determinarProxTipoMarcacao] Tipo ${proximoTipo} já existe no dia, tentando próximo... (tentativa ${tentativas + 1})`);
+      proximoTipo = sequencia[proximoTipo] || 1;
+      tentativas++;
+    }
+
+    console.log(`[determinarProxTipoMarcacao] Tipo final a ser registrado: ${proximoTipo}`);
     return proximoTipo;
   } catch (erro: any) {
     console.error('Erro ao determinar próximo tipo:', erro.message);
@@ -219,7 +245,12 @@ async function obterTiposMarcacao(req: Request, res: Response): Promise<any> {
 
 // Registrar ponto - Com validação e auto-seleção de tipo
 async function registrarPonto(req: Request, res: Response): Promise<any> {
-  const { funcionario_codigo } = req.body;
+  const { funcionario_codigo, tipo_marcacao: tipoRecebido } = req.body;
+
+  console.log(`[pontoController.registrarPonto] Iniciando registro de ponto`);
+  console.log(`[pontoController.registrarPonto] Corpo da requisição:`, req.body);
+  console.log(`[pontoController.registrarPonto] funcionario_codigo extraído:`, funcionario_codigo);
+  console.log(`[pontoController.registrarPonto] tipo_marcacao recebido:`, tipoRecebido);
 
   if (!funcionario_codigo) {
     return res.status(400).json({
@@ -245,9 +276,22 @@ async function registrarPonto(req: Request, res: Response): Promise<any> {
       });
     }
 
-    // DETERMINAÇÃO DO TIPO: Auto-selecionar o tipo
-    const tipoMarcacao = await determinarProxTipoMarcacao(funcionario_codigo, dataRegistro);
-    console.log(`[pontoController] Tipo de marcação auto-selecionado: ${tipoMarcacao}`);
+    // DETERMINAÇÃO DO TIPO: Usar tipo do frontend se enviado, senão calcular
+    let tipoMarcacao = tipoRecebido || await determinarProxTipoMarcacao(funcionario_codigo, dataRegistro);
+    console.log(`[pontoController] Tipo de marcação final: ${tipoMarcacao} (recebido: ${tipoRecebido || 'não'})`);
+
+    // VALIDAÇÃO 2: Verificar se tipo já foi registrado no dia
+    const registrosHoje = await firebirdDb.obterHistoricoPontos(parseInt(funcionario_codigo), dataRegistro);
+    const tiposJaRegistrados = new Set(registrosHoje.map((r: any) => r.TIPO_MARCACAO));
+
+    if (tiposJaRegistrados.has(tipoMarcacao)) {
+      console.warn(`[pontoController] Tipo ${tipoMarcacao} já foi registrado hoje para funcionário ${funcionario_codigo}`);
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: `Tipo "${['', 'Início expediente', 'Saída intervalo', 'Retorno intervalo', 'Final expediente'][tipoMarcacao]}" já foi registrado hoje`,
+        erro: 'TIPO_JA_REGISTRADO'
+      });
+    }
 
     console.log(`[pontoController] Dados recebidos: func=${funcionario_codigo}, tipo=${tipoMarcacao}, data=${dataRegistro}, hora=${horaRegistro}`);
 

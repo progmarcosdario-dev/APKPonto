@@ -108,12 +108,13 @@ function App() {
         second: '2-digit',
       });
 
-      // Enviar para backend (tipo_marcacao opcional, será auto-selecionado)
+      // Enviar para backend com o tipo selecionado
       const response = await API.post('/ponto/registrar', {
         funcionario_codigo: funcionario?.codigo || '',
+        tipo_marcacao: type
       });
 
-      // Pegar o tipo de marcação retornado pelo backend
+      // Pegar o tipo de marcação retornado pelo backend (deve ser o mesmo que enviamos)
       const tipoRetornado = response.data.tipo_marcacao || type;
 
       // Verificar se há atraso
@@ -231,6 +232,7 @@ function App() {
         <TimeEntryScreen
           key="entry"
           employeeName={funcionario?.nome || EMPLOYEE_NAME}
+          employeeCode={funcionario?.codigo}
           onSave={handleSaveEntry}
           onBack={handleEntryBack}
           completedEntries={completedEntries}

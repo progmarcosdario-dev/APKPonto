@@ -1,12 +1,14 @@
 ' Script VBScript para iniciar Frontend e Backend totalmente invisível
 ' Este arquivo roda sem mostrar nenhuma janela
 
-Dim objShell, strPath, backendPath, frontendPath, WshShell
+Dim objShell, strPath, backendPath, frontendPath, WshShell, fso
 
 Set objShell = CreateObject("WScript.Shell")
 Set WshShell = CreateObject("WScript.Shell")
+Set fso = CreateObject("Scripting.FileSystemObject")
 
-strPath = "C:\ProjetosNode\APK"
+' Obter caminho do diretório onde este script está
+strPath = fso.GetParentFolderName(WScript.ScriptFullName)
 backendPath = strPath & "\BackEnd"
 frontendPath = strPath & "\frontend"
 
