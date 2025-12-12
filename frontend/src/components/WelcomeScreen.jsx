@@ -200,7 +200,7 @@ export default function WelcomeScreen({ onStart }) {
           transition={{ delay: 0.35 }}
           style={{ textAlign: 'center' }}
         >
-          <p style={{ color: '#6A6A6A', fontSize: '0.875rem' }}>
+          <p style={{ color: '#6A6A6A', fontSize: '0.875rem', fontWeight: 700 }}>
             Toque no botão abaixo para iniciar seu registro
           </p>
         </motion.div>
@@ -273,13 +273,13 @@ export default function WelcomeScreen({ onStart }) {
           }}
         >
           <div style={{
-            width: '0.625rem',
-            height: '0.625rem',
+            width: '0.75rem',
+            height: '0.75rem',
             backgroundColor: '#0F7C3E',
             borderRadius: '9999px',
             animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
           }} />
-          <p style={{ fontSize: '0.75rem' }}>Sistema online e pronto</p>
+          <p style={{ fontSize: '0.9rem' }}>Sistema online e pronto</p>
         </motion.div>
       </div>
 

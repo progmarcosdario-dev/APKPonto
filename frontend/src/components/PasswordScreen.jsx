@@ -39,14 +39,14 @@ export default function PasswordScreen({ onConfirm, onCancel }) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
         minHeight: '100vh',
-        padding: '2rem',
+        padding: '1rem 2rem',
         backgroundColor: '#EBEBEB'
       }}
     >
       {/* Logo */}
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '1rem' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: '0', marginBottom: '1rem' }}>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -72,32 +72,12 @@ export default function PasswordScreen({ onConfirm, onCancel }) {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '2rem',
-        flex: 1,
-        justifyContent: 'center',
+        gap: '1.5rem',
+        flex: 0,
+        justifyContent: 'flex-start',
         maxWidth: '28rem',
         width: '100%'
       }}>
-        {/* Ícone */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.15, type: "spring", stiffness: 150 }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '5rem',
-            height: '5rem',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(4px)',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-          }}
-        >
-          <Lock style={{ width: '2.5rem', height: '2.5rem', color: '#E30613', strokeWidth: 2 }} />
-        </motion.div>
-
         {/* Formulário */}
         <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {/* Label */}
@@ -267,46 +247,45 @@ export default function PasswordScreen({ onConfirm, onCancel }) {
             </motion.button>
           </motion.div>
 
-          {/* Botão Confirmar */}
-          <motion.button
-            type="submit"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.95 }}
-            whileHover={isPasswordComplete ? { scale: 1.02 } : {}}
-            whileTap={isPasswordComplete ? { scale: 0.98 } : {}}
-            disabled={!isPasswordComplete}
-            style={{
-              width: '100%',
-              height: '4rem',
-              borderRadius: '1rem',
-              backgroundColor: isPasswordComplete ? '#E30613' : 'rgba(227, 6, 19, 0.4)',
-              color: 'white',
-              fontWeight: 700,
-              fontSize: '1.125rem',
-              boxShadow: isPasswordComplete ? '0 10px 15px -3px rgba(227, 6, 19, 0.3)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-              border: 'none',
-              cursor: isPasswordComplete ? 'pointer' : 'not-allowed',
-              transition: 'all 0.2s'
-            }}
-          >
-            Confirmar
-          </motion.button>
         </form>
-      </div>
 
-      {/* Botão Voltar */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.0 }}
-        style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingBottom: '1rem' }}
-      >
+        {/* Botão Confirmar */}
+        <motion.button
+          type="submit"
+          onClick={handleSubmit}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.95 }}
+          whileHover={isPasswordComplete ? { scale: 1.02 } : {}}
+          whileTap={isPasswordComplete ? { scale: 0.98 } : {}}
+          disabled={!isPasswordComplete}
+          style={{
+            width: '100%',
+            height: '4rem',
+            borderRadius: '1rem',
+            backgroundColor: isPasswordComplete ? '#E30613' : 'rgba(227, 6, 19, 0.4)',
+            color: 'white',
+            fontWeight: 700,
+            fontSize: '1.125rem',
+            boxShadow: isPasswordComplete ? '0 10px 15px -3px rgba(227, 6, 19, 0.3)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+            border: 'none',
+            cursor: isPasswordComplete ? 'pointer' : 'not-allowed',
+            transition: 'all 0.2s'
+          }}
+        >
+          Confirmar
+        </motion.button>
+
+        {/* Botão Voltar */}
         <motion.button
           onClick={onCancel}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           style={{
+            alignSelf: 'flex-start',
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
@@ -316,7 +295,8 @@ export default function PasswordScreen({ onConfirm, onCancel }) {
             cursor: 'pointer',
             fontSize: '1rem',
             fontWeight: 500,
-            transition: 'color 0.2s'
+            transition: 'color 0.2s',
+            marginTop: '0.5rem'
           }}
           onMouseEnter={(e) => e.currentTarget.style.color = '#2A2A2A'}
           onMouseLeave={(e) => e.currentTarget.style.color = '#5A5A5A'}
@@ -324,7 +304,7 @@ export default function PasswordScreen({ onConfirm, onCancel }) {
           <ArrowLeft size={20} strokeWidth={2} />
           <span>Voltar</span>
         </motion.button>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
