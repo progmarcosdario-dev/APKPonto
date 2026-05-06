@@ -7,6 +7,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   const streamRef = useRef(null);
   const countdownRef = useRef(null);
   const tentativaRef = useRef(0);
+  const validadoRef = useRef(false);
 
   const [cameraAtiva, setCameraAtiva] = useState(false);
   const [capturando, setCapturando] = useState(false);
@@ -46,7 +47,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   }, [autoStart, cameraAtiva]);
 
   const iniciarContagemCaptura = (forcado = false) => {
-    if (!autoCapture || (!cameraAtiva && !forcado)) {
+    if (!autoCapture || (!cameraAtiva && !forcado) || validadoRef.current) {
       return;
     }
 
@@ -166,20 +167,27 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
 
       const biometria = resposta?.data?.biometria;
       if (!biometria?.verificada) {
-        if (biometria?.motivo === 'ROSTO_NAO_DETECTADO') {
-          setStatus(`Tentativa ${tentativaAtual}: rosto nao detectado. Nova tentativa em instantes.`);
-        } else if (biometria?.motivo === 'BIOMETRIA_DESATUALIZADA') {
+        if (biometria?.motivo === 'BIOMETRIA_DESATUALIZADA') {
           setStatus('Biometria desatualizada. Faca o recadastro facial para continuar.');
+          onVerifiedChange(null);
+          // Erro permanente — não reiniciar tentativas
+        } else if (biometria?.motivo === 'ROSTO_NAO_DETECTADO') {
+          setStatus(`Tentativa ${tentativaAtual}: rosto nao detectado. Nova tentativa em instantes.`);
+          onVerifiedChange(null);
+          if (autoCapture && cameraAtiva) {
+            setTimeout(() => iniciarContagemCaptura(), 2000);
+          }
         } else {
           setStatus(`Tentativa ${tentativaAtual}: rosto nao validado. Nova tentativa em instantes.`);
-        }
-        onVerifiedChange(null);
-        if (autoCapture && cameraAtiva) {
-          setTimeout(() => iniciarContagemCaptura(), 2000);
+          onVerifiedChange(null);
+          if (autoCapture && cameraAtiva) {
+            setTimeout(() => iniciarContagemCaptura(), 2000);
+          }
         }
         return;
       }
 
+      validadoRef.current = true;
       setStatus(`Rosto validado com sucesso na tentativa ${tentativaAtual}.`);
       onVerifiedChange({
         verificada: true,

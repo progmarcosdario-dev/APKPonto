@@ -329,6 +329,12 @@ async function registrarPonto(req: Request, res: Response): Promise<any> {
       console.log(`[pontoController] Mensagem de atraso: ${mensagemAtraso}`);
       console.log(`[pontoController] Minutosatraso: ${minutosAtraso}`);
 
+      const tiposLabel: Record<number, string> = {
+        1: 'Inicio expediente', 2: 'Saida intervalo', 3: 'Retorno intervalo', 4: 'Final expediente'
+      };
+      const descLog = `Tipo: ${tiposLabel[tipoMarcacao] || tipoMarcacao}${mensagemAtraso ? ` | ${mensagemAtraso}` : ''}${trabalharFacial ? ` | Biometria: score=${biometria.score?.toFixed(2) ?? 'N/A'}` : ''}`;
+      firebirdDb.gravarLogPonto(parseInt(funcionario_codigo), 'REGISTRO_PONTO', descLog, 'SUCESSO').catch(() => {});
+
       if (trabalharFacial && biometria.verificada && biometria.hash) {
         try {
           await auditarVerificacaoBiometrica({
@@ -357,6 +363,7 @@ async function registrarPonto(req: Request, res: Response): Promise<any> {
       });
     } catch (firebaseErr: any) {
       console.error(`[pontoController] Erro ao gravar no Firebird:`, firebaseErr.message);
+      firebirdDb.gravarLogPonto(parseInt(funcionario_codigo), 'REGISTRO_PONTO', `Erro: ${firebaseErr.message}`, 'ERRO').catch(() => {});
 
       return res.status(500).json({
         sucesso: false,

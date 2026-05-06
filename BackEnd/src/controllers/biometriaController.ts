@@ -4,6 +4,7 @@ import {
   registrarTemplateBiometrico,
   verificarBiometria
 } from '../services/biometriaService';
+import { gravarLogPonto } from '../database/firebird';
 
 async function cadastrarBiometria(req: Request, res: Response): Promise<any> {
   const funcionarioRaw = req.body?.funcionario_codigo ?? req.body?.codigoFuncionario;
@@ -70,12 +71,20 @@ async function validarBiometria(req: Request, res: Response): Promise<any> {
 
   try {
     const resultado = await verificarBiometria(funcionarioCodigo, faceBase64);
+    const verificada = resultado?.verificada ?? false;
+    const motivo = resultado?.motivo ?? '';
+    const score = resultado?.score != null ? Number(resultado.score).toFixed(2) : 'N/A';
+    const desc = verificada
+      ? `Score: ${score}`
+      : `Motivo: ${motivo || 'nao validado'} | Score: ${score}`;
+    gravarLogPonto(funcionarioCodigo, 'VALIDACAO_FACIAL', desc, verificada ? 'SUCESSO' : 'FALHA').catch(() => {});
     return res.json({
       sucesso: true,
       biometria: resultado
     });
   } catch (erro: any) {
     if (erro?.code === 'ERRO_EXTRACAO_DESCRIPTOR') {
+      gravarLogPonto(funcionarioCodigo, 'VALIDACAO_FACIAL', 'Erro extracao descriptor', 'ERRO').catch(() => {});
       return res.status(422).json({
         sucesso: false,
         mensagem: 'Nao foi possivel processar o rosto. Tente novamente com boa iluminacao.',
@@ -84,6 +93,7 @@ async function validarBiometria(req: Request, res: Response): Promise<any> {
     }
 
     logger.error('Erro ao validar biometria', { erro: erro.message });
+    gravarLogPonto(funcionarioCodigo, 'VALIDACAO_FACIAL', `Erro: ${erro.message}`, 'ERRO').catch(() => {});
     return res.status(500).json({
       sucesso: false,
       mensagem: 'Erro ao validar biometria',

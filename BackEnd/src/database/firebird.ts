@@ -520,7 +520,7 @@ async function inicializarTabelasBiometria(): Promise<void> {
     console.log('Tabela PONTO_BIOMETRIA_AUDITORIA criada no Firebird ✅');
   }
 
-  const parametrosExiste = await tabelaExiste('PARAMETROS');
+    const parametrosExiste = await tabelaExiste('PARAMETROS');
   if (parametrosExiste) {
     const trabalharFacialExiste = await colunaExiste('PARAMETROS', 'TRABALHAR_FACIAL');
     if (!trabalharFacialExiste) {
@@ -528,11 +528,60 @@ async function inicializarTabelasBiometria(): Promise<void> {
       console.log('Coluna TRABALHAR_FACIAL adicionada em PARAMETROS ✅');
     }
   }
+
+  // Criar tabela LOG_PONTO se não existir
+  const logPontoExiste = await tabelaExiste('LOG_PONTO');
+  if (!logPontoExiste) {
+    await executarQuery(`
+      CREATE TABLE LOG_PONTO (
+        DATA_LOG DATE NOT NULL,
+        HORA_LOG TIME NOT NULL,
+        FUNCIONARIO_CODIGO INTEGER,
+        TIPO VARCHAR(50) NOT NULL,
+        DESCRICAO VARCHAR(500),
+        RESULTADO VARCHAR(20)
+      )
+    `, []);
+    console.log('Tabela LOG_PONTO criada no Firebird ✅');
+  }
+
+  // Limpeza automática: remover logs com mais de 30 dias
+  try {
+    await executarQuery(`DELETE FROM LOG_PONTO WHERE DATA_LOG < CURRENT_DATE - 30`, []);
+    console.log('Limpeza automática LOG_PONTO (>30 dias) executada ✅');
+  } catch (e) {
+    console.warn('Falha na limpeza automática de LOG_PONTO:', e);
+  }
+
+  // Agendar limpeza diária
+  setInterval(async () => {
+    try {
+      await executarQuery(`DELETE FROM LOG_PONTO WHERE DATA_LOG < CURRENT_DATE - 30`, []);
+    } catch (e) { /* silencioso */ }
+  }, 24 * 60 * 60 * 1000);
+}
+
+/**
+ * Gravar log na tabela LOG_PONTO
+ */
+async function gravarLogPonto(
+  funcionarioCodigo: number | null,
+  tipo: string,
+  descricao: string,
+  resultado: string
+): Promise<void> {
+  try {
+    await executarQuery(
+      `INSERT INTO LOG_PONTO (DATA_LOG, HORA_LOG, FUNCIONARIO_CODIGO, TIPO, DESCRICAO, RESULTADO)
+       VALUES (CURRENT_DATE, CURRENT_TIME, ?, ?, ?, ?)`,
+      [funcionarioCodigo ?? null, tipo.substring(0, 50), descricao.substring(0, 499), resultado.substring(0, 20)]
+    );
+  } catch (erro) {
+    console.warn('[LOG_PONTO] Falha ao gravar log:', erro);
+  }
 }
 
 export {
-  inicializarConexao,
-  executarQuery,
   obterDadosFuncionario,
   buscarFuncionarioPorSenha,
   obterTiposMarcacao,
@@ -543,6 +592,7 @@ export {
   fecharConexao,
   invalidarCache,
   inicializarTabelasBiometria,
+  gravarLogPonto,
   obterTrabalharFacial,
   firebirdConfig,
   // Types
