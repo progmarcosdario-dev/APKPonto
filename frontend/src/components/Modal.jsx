@@ -22,7 +22,7 @@ export default function Modal({ isOpen, title, message, type = 'error', onConfir
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
+          {/* Overlay + Modal centralizado */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -36,27 +36,27 @@ export default function Modal({ isOpen, title, message, type = 'error', onConfir
               bottom: 0,
               backgroundColor: 'rgba(0, 0, 0, 0.5)',
               zIndex: 999,
-              backdropFilter: 'blur(2px)'
+              backdropFilter: 'blur(2px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem'
             }}
-          />
-
+          >
           {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            onClick={(e) => e.stopPropagation()}
             style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
               backgroundColor: 'white',
               borderRadius: '1.25rem',
               padding: '2rem',
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
               zIndex: 1000,
-              minWidth: '320px',
+              width: '100%',
               maxWidth: '400px',
               border: `2px solid ${borderColor}`
             }}
@@ -142,6 +142,7 @@ export default function Modal({ isOpen, title, message, type = 'error', onConfir
             >
               {confirmText}
             </motion.button>
+          </motion.div>
           </motion.div>
         </>
       )}
