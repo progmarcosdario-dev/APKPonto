@@ -116,7 +116,8 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       style={{
-        minHeight: '100vh',
+        height: '100vh',
+        overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -124,7 +125,7 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
         padding: '1.2rem'
       }}
     >
-      <div style={{ width: '100%', maxWidth: '44rem', backgroundColor: '#fff', borderRadius: '1rem', padding: '1.2rem', boxShadow: '0 10px 20px rgba(0,0,0,0.08)' }}>
+      <div style={{ width: '100%', maxWidth: '44rem', maxHeight: 'calc(100vh - 2.4rem)', overflowY: 'auto', backgroundColor: '#fff', borderRadius: '1rem', padding: '1.2rem', boxShadow: '0 10px 20px rgba(0,0,0,0.08)' }}>
         <h2 style={{ marginTop: 0, color: '#1f2937' }}>Cadastro de Biometria</h2>
         <p style={{ color: '#4b5563', marginTop: 0 }}>
           {employeeName}, voce ainda nao possui biometria cadastrada. Capture seu rosto para continuar.
@@ -153,7 +154,7 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
             autoPlay
             playsInline
             muted
-            style={{ width: '100%', borderRadius: '0.75rem', border: '1px solid #d1d5db', marginBottom: '0.8rem' }}
+            style={{ width: '100%', maxHeight: '240px', objectFit: 'cover', borderRadius: '0.75rem', border: '1px solid #d1d5db', marginBottom: '0.8rem' }}
           />
         )}
 
