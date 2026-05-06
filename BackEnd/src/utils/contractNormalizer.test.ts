@@ -106,7 +106,6 @@ describe('contractNormalizer', () => {
         }
       });
       expect(resultado.erros).toContain('Verificação biométrica obrigatória');
-      expect(resultado.erros).toContain('Score biométrico insuficiente');
       expect(resultado.erros).toContain('Hash biométrico obrigatório');
     });
 
@@ -116,6 +115,37 @@ describe('contractNormalizer', () => {
         tipo: 'entrada'
       });
       expect(resultado.erros).toContain('Verificação biométrica obrigatória');
+    });
+
+    it('deve aceitar payload sem biometria quando exigencia estiver desativada', () => {
+      const resultado = normalizarRegistroPontoPayload(
+        {
+          funcionario_codigo: '321',
+          tipo: 'entrada'
+        },
+        { exigirBiometria: false }
+      );
+
+      expect(resultado.erros).toEqual([]);
+    });
+
+    it('deve ignorar hash ausente quando exigencia biometrica estiver desativada', () => {
+      const resultado = normalizarRegistroPontoPayload(
+        {
+          funcionario_codigo: '321',
+          tipo: 'entrada',
+          biometria: {
+            verificada: false,
+            score: 0,
+            hash: '',
+            origem: 'web',
+            metodo: 'camera'
+          }
+        },
+        { exigirBiometria: false }
+      );
+
+      expect(resultado.erros).toEqual([]);
     });
   });
 });

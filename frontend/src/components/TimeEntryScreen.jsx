@@ -103,10 +103,10 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
-        minHeight: '100vh',
+        height: '100vh',
         padding: '1rem 2rem 0.5rem 2rem',
         backgroundColor: '#EBEBEB',
-        overflow: 'hidden'
+        overflowY: 'auto'
       }}
     >
       {/* Logo */}
@@ -139,7 +139,8 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
         justifyContent: 'flex-start',
         maxWidth: '40rem',
         width: '100%',
-        overflow: 'hidden'
+        overflow: 'visible',
+        paddingBottom: '1rem'
       }}>
         {/* Card: Funcionário, Data e Hora */}
         <motion.div

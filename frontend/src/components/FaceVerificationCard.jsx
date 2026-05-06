@@ -6,6 +6,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const countdownRef = useRef(null);
+  const tentativaRef = useRef(0);
 
   const [cameraAtiva, setCameraAtiva] = useState(false);
   const [capturando, setCapturando] = useState(false);
@@ -55,8 +56,9 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
     }
 
     let contador = 3;
+    const proximaTentativa = tentativaRef.current + 1;
     setContagemRegressiva(contador);
-    setStatus('Posicione o rosto. Captura automática em andamento...');
+    setStatus(`Tentativa ${proximaTentativa}: posicione o rosto. Captura automática em andamento...`);
 
     countdownRef.current = setInterval(() => {
       contador -= 1;
@@ -136,8 +138,11 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       return;
     }
 
+    const tentativaAtual = tentativaRef.current + 1;
+    tentativaRef.current = tentativaAtual;
     setCapturando(true);
     setErro('');
+    setStatus(`Tentativa ${tentativaAtual}: capturando imagem...`);
 
     try {
       const video = videoRef.current;
@@ -162,11 +167,11 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       const biometria = resposta?.data?.biometria;
       if (!biometria?.verificada) {
         if (biometria?.motivo === 'ROSTO_NAO_DETECTADO') {
-          setStatus('Rosto nao detectado. Melhore a iluminacao e tente novamente.');
+          setStatus(`Tentativa ${tentativaAtual}: rosto nao detectado. Nova tentativa em instantes.`);
         } else if (biometria?.motivo === 'BIOMETRIA_DESATUALIZADA') {
           setStatus('Biometria desatualizada. Faca o recadastro facial para continuar.');
         } else {
-          setStatus('Rosto nao validado. Tente novamente.');
+          setStatus(`Tentativa ${tentativaAtual}: rosto nao validado. Nova tentativa em instantes.`);
         }
         onVerifiedChange(null);
         if (autoCapture && cameraAtiva) {
@@ -175,7 +180,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
         return;
       }
 
-      setStatus('Rosto validado com sucesso.');
+      setStatus(`Rosto validado com sucesso na tentativa ${tentativaAtual}.`);
       onVerifiedChange({
         verificada: true,
         score: biometria.score,
@@ -186,6 +191,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       pararCamera();
     } catch (validacaoErro) {
       setErro(validacaoErro?.message || 'Falha ao validar biometria');
+      setStatus(`Tentativa ${tentativaAtual}: erro na validação. Nova tentativa em instantes.`);
       onVerifiedChange(null);
       if (autoCapture && cameraAtiva) {
         iniciarContagemCaptura();

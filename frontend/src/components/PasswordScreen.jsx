@@ -40,7 +40,8 @@ export default function PasswordScreen({ onConfirm, onCancel }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
-        minHeight: '100vh',
+        height: '100vh',
+        overflowY: 'auto',
         padding: '1rem 2rem',
         backgroundColor: '#EBEBEB'
       }}
