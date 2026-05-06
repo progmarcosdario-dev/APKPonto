@@ -14,6 +14,10 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
   const [deviceIdSelecionado, setDeviceIdSelecionado] = useState('');
 
   useEffect(() => {
+    if (!navigator.mediaDevices) {
+      setErro('Câmera não disponível. Acesse via HTTPS ou use o servidor seguro (porta 3000 com HTTPS).');
+      return;
+    }
     navigator.mediaDevices.enumerateDevices()
       .then((devices) => {
         const cameras = devices.filter((d) => d.kind === 'videoinput');

@@ -14,6 +14,10 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   const [deviceIdSelecionado, setDeviceIdSelecionado] = useState('');
 
   useEffect(() => {
+    if (!navigator.mediaDevices) {
+      setErro('Câmera não disponível. Acesse via HTTPS.');
+      return;
+    }
     navigator.mediaDevices.enumerateDevices()
       .then((devices) => {
         const cameras = devices.filter((d) => d.kind === 'videoinput');
