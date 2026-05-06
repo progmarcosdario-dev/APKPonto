@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import API from '../api/api';
 
@@ -10,15 +10,27 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
   const [cameraAtiva, setCameraAtiva] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
+  const [dispositivos, setDispositivos] = useState([]);
+  const [deviceIdSelecionado, setDeviceIdSelecionado] = useState('');
 
-  const iniciarCamera = async () => {
+  useEffect(() => {
+    navigator.mediaDevices.enumerateDevices()
+      .then((devices) => {
+        const cameras = devices.filter((d) => d.kind === 'videoinput');
+        setDispositivos(cameras);
+        if (cameras.length > 0) setDeviceIdSelecionado(cameras[0].deviceId);
+      })
+      .catch(() => {});
+  }, []);
+
+  const iniciarCamera = async (deviceId) => {
     setErro('');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 540 } },
-        audio: false
-      });
-
+      const id = deviceId !== undefined ? deviceId : deviceIdSelecionado;
+      const video = id
+        ? { deviceId: { exact: id }, width: { ideal: 720 }, height: { ideal: 540 } }
+        : { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 540 } };
+      const stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -26,6 +38,17 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
       setCameraAtiva(true);
     } catch (_e) {
       setErro('Nao foi possivel acessar a camera. Verifique as permissoes.');
+    }
+  };
+
+  const trocarCamera = async (novoDeviceId) => {
+    setDeviceIdSelecionado(novoDeviceId);
+    if (cameraAtiva) {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      await iniciarCamera(novoDeviceId);
     }
   };
 
@@ -89,6 +112,23 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
           {employeeName}, voce ainda nao possui biometria cadastrada. Capture seu rosto para continuar.
         </p>
 
+        {dispositivos.length > 1 && (
+          <div style={{ marginBottom: '0.75rem' }}>
+            <label style={{ display: 'block', color: '#374151', fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.88rem' }}>Camera:</label>
+            <select
+              value={deviceIdSelecionado}
+              onChange={(e) => trocarCamera(e.target.value)}
+              style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', fontSize: '0.88rem', backgroundColor: '#f9fafb' }}
+            >
+              {dispositivos.map((d, i) => (
+                <option key={d.deviceId} value={d.deviceId}>
+                  {d.label || `Camera ${i + 1}`}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {cameraAtiva && (
           <video
             ref={videoRef}
@@ -105,7 +145,7 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
           {!cameraAtiva && (
             <button
               type="button"
-              onClick={iniciarCamera}
+              onClick={() => iniciarCamera()}
               style={{ flex: 1, border: 'none', borderRadius: '0.5rem', backgroundColor: '#111827', color: '#fff', padding: '0.75rem', fontWeight: 700 }}
             >
               Abrir camera

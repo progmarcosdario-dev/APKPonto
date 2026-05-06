@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import API from '../api/api';
 
 export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChange }) {
@@ -10,29 +10,47 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   const [capturando, setCapturando] = useState(false);
   const [erro, setErro] = useState('');
   const [status, setStatus] = useState('Aguardando validação facial');
+  const [dispositivos, setDispositivos] = useState([]);
+  const [deviceIdSelecionado, setDeviceIdSelecionado] = useState('');
 
-  const iniciarCamera = async () => {
+  useEffect(() => {
+    navigator.mediaDevices.enumerateDevices()
+      .then((devices) => {
+        const cameras = devices.filter((d) => d.kind === 'videoinput');
+        setDispositivos(cameras);
+        if (cameras.length > 0) setDeviceIdSelecionado(cameras[0].deviceId);
+      })
+      .catch(() => {});
+  }, []);
+
+  const iniciarCamera = async (deviceId) => {
     setErro('');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'user',
-          width: { ideal: 720 },
-          height: { ideal: 540 }
-        },
-        audio: false
-      });
-
+      const id = deviceId !== undefined ? deviceId : deviceIdSelecionado;
+      const video = id
+        ? { deviceId: { exact: id }, width: { ideal: 720 }, height: { ideal: 540 } }
+        : { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 540 } };
+      const stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-
       setCameraAtiva(true);
       setStatus('Camera ativa. Enquadre o rosto e confirme.');
     } catch (cameraErro) {
       setErro('Nao foi possivel acessar a camera. Verifique permissoes do navegador.');
       setStatus('Validacao facial indisponivel');
+    }
+  };
+
+  const trocarCamera = async (novoDeviceId) => {
+    setDeviceIdSelecionado(novoDeviceId);
+    if (cameraAtiva) {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      await iniciarCamera(novoDeviceId);
     }
   };
 
@@ -101,6 +119,23 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       <p style={{ margin: 0, color: '#2A2A2A', fontWeight: 600, fontSize: '1.1rem' }}>Validacao Facial</p>
       <p style={{ margin: '0.25rem 0 0.5rem 0', color: '#5A5A5A', fontSize: '0.95rem' }}>{status}</p>
 
+      {dispositivos.length > 1 && (
+        <div style={{ marginBottom: '0.5rem' }}>
+          <label style={{ display: 'block', color: '#374151', fontWeight: 600, marginBottom: '0.2rem', fontSize: '0.85rem' }}>Camera:</label>
+          <select
+            value={deviceIdSelecionado}
+            onChange={(e) => trocarCamera(e.target.value)}
+            style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '0.4rem', border: '1px solid #ddd', fontSize: '0.85rem', backgroundColor: '#f9fafb' }}
+          >
+            {dispositivos.map((d, i) => (
+              <option key={d.deviceId} value={d.deviceId}>
+                {d.label || `Camera ${i + 1}`}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {cameraAtiva && (
         <video
           ref={videoRef}
@@ -117,7 +152,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
         {!cameraAtiva && (
           <button
             type="button"
-            onClick={iniciarCamera}
+            onClick={() => iniciarCamera()}
             style={{ flex: 1, border: 'none', borderRadius: '0.5rem', backgroundColor: '#1f2937', color: '#fff', padding: '0.65rem', fontWeight: 600 }}
           >
             Abrir camera

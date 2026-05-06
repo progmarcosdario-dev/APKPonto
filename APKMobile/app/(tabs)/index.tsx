@@ -25,6 +25,7 @@ export default function TelaInicial() {
   const [erroSenha, setErroSenha] = useState('');
   const [tipoPendente, setTipoPendente] = useState<'entrada' | 'saida' | 'pausa' | 'retorno' | null>(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [facingCamera, setFacingCamera] = useState<'front' | 'back'>('front');
   const cameraRef = useRef<CameraView | null>(null);
 
   const iniciar = () => {
@@ -253,7 +254,7 @@ export default function TelaInicial() {
                 cameraRef.current = ref;
               }}
               style={styles.camera}
-              facing="front"
+              facing={facingCamera}
             />
             <View style={styles.acoesBiometria}>
               <TouchableOpacity
@@ -262,6 +263,13 @@ export default function TelaInicial() {
                 disabled={carregando}
               >
                 <Text style={styles.textoBotao}>{carregando ? 'Cadastrando...' : 'Capturar e cadastrar'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.botaoBiometriaCancelar}
+                onPress={() => setFacingCamera((f) => (f === 'front' ? 'back' : 'front'))}
+                disabled={carregando}
+              >
+                <Text style={styles.textoSecundario}>🔄 Virar camera</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -293,7 +301,7 @@ export default function TelaInicial() {
                   cameraRef.current = ref;
                 }}
                 style={styles.camera}
-                facing="front"
+                facing={facingCamera}
               />
               <View style={styles.acoesBiometria}>
                 <TouchableOpacity
@@ -302,6 +310,13 @@ export default function TelaInicial() {
                   disabled={carregando}
                 >
                   <Text style={styles.textoBotao}>Capturar e validar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.botaoBiometriaCancelar}
+                  onPress={() => setFacingCamera((f) => (f === 'front' ? 'back' : 'front'))}
+                  disabled={carregando}
+                >
+                  <Text style={styles.textoSecundario}>🔄 Virar camera</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.botaoBiometriaCancelar}
