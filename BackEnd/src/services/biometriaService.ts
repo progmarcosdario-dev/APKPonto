@@ -70,7 +70,9 @@ async function possuiBiometriaCadastrada(funcionarioCodigo: number): Promise<boo
 
 function obterRegistroBiometria(funcionarioCodigo: number): Promise<{ HASH_BIOMETRIA: string; FACE_DESCRIPTOR: string | null } | null> {
   return executarQuery(
-    `SELECT HASH_BIOMETRIA, FACE_DESCRIPTOR FROM BIOMETRIAS_FUNCIONARIO WHERE FUNCIONARIO_CODIGO = ?`,
+    `SELECT HASH_BIOMETRIA, CAST(FACE_DESCRIPTOR AS VARCHAR(8192)) AS FACE_DESCRIPTOR
+       FROM BIOMETRIAS_FUNCIONARIO
+      WHERE FUNCIONARIO_CODIGO = ?`,
     [funcionarioCodigo]
   ).then((resultado: any[]) => resultado?.[0] ?? null)
    .catch(() => null);
@@ -129,9 +131,16 @@ async function verificarBiometria(funcionarioCodigo: number, base64Face: string)
     return { verificada: false, score: 0, hash: hashAtual, motivo: 'ROSTO_NAO_DETECTADO' };
   }
 
-  const descritorSalvoRaw = typeof registro.FACE_DESCRIPTOR === 'string'
-    ? registro.FACE_DESCRIPTOR
-    : await lerBlob(registro.FACE_DESCRIPTOR);
+  let descritorSalvoRaw = '';
+  try {
+    descritorSalvoRaw = typeof registro.FACE_DESCRIPTOR === 'string'
+      ? registro.FACE_DESCRIPTOR
+      : await lerBlob(registro.FACE_DESCRIPTOR);
+  } catch (e) {
+    console.error('[face-api] Erro ao ler descriptor salvo:', e);
+    await atualizarStatusBiometria(funcionarioCodigo, false).catch(() => undefined);
+    return { verificada: false, score: 0, hash: hashAtual, motivo: 'BIOMETRIA_DESATUALIZADA' };
+  }
 
   const descritorSalvo = deserializarDescriptor(descritorSalvoRaw);
 
