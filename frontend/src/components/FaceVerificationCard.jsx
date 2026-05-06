@@ -175,7 +175,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
         }
         onVerifiedChange(null);
         if (autoCapture && cameraAtiva) {
-          iniciarContagemCaptura();
+          setTimeout(() => iniciarContagemCaptura(), 2000);
         }
         return;
       }
@@ -194,7 +194,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       setStatus(`Tentativa ${tentativaAtual}: erro na validação. Nova tentativa em instantes.`);
       onVerifiedChange(null);
       if (autoCapture && cameraAtiva) {
-        iniciarContagemCaptura();
+        setTimeout(() => iniciarContagemCaptura(), 2000);
       }
     } finally {
       setCapturando(false);
