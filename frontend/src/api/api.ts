@@ -16,6 +16,7 @@ const getApiBaseUrl = (): string => {
 };
 
 const API_BASE_URL = getApiBaseUrl();
+const REQUEST_TIMEOUT_MS = 30000;
 
 // Interface para registros pendentes offline
 interface DadosBiometria {
@@ -71,39 +72,69 @@ async function salvarRegistroPendente(registro: RegistroPendente): Promise<void>
 // Cliente de API estilo Axios
 class ClienteAPI {
   async post(endpoint: string, dados: any) {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados),
+        signal: controller.signal,
       });
 
-      const dadosResponse = await response.json();
+      let dadosResponse: any = null;
+      try {
+        dadosResponse = await response.json();
+      } catch {
+        dadosResponse = null;
+      }
 
       if (!response.ok) {
-        throw new Error(dadosResponse.mensagem || 'Erro na requisição');
+        throw new Error(dadosResponse?.mensagem || 'Erro na requisição');
       }
 
       return { data: dadosResponse, status: response.status };
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new Error('A requisicao demorou demais. Tente novamente.');
+      }
       console.error('[API] Erro na requisição POST:', error);
       throw error;
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   }
 
   async get(endpoint: string) {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`);
-      const dados = await response.json();
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        signal: controller.signal,
+      });
+
+      let dados: any = null;
+      try {
+        dados = await response.json();
+      } catch {
+        dados = null;
+      }
 
       if (!response.ok) {
-        throw new Error(dados.mensagem || 'Erro na requisição');
+        throw new Error(dados?.mensagem || 'Erro na requisição');
       }
 
       return { data: dados, status: response.status };
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new Error('A requisicao demorou demais. Tente novamente.');
+      }
       console.error('[API] Erro na requisição GET:', error);
       throw error;
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   }
 

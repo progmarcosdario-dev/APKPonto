@@ -1,5 +1,5 @@
 import path from 'path';
-import { createCanvas, loadImage } from 'canvas';
+import { createCanvas, loadImage, Canvas, Image, ImageData } from 'canvas';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-wasm';
 
@@ -9,6 +9,7 @@ const faceapi = require('@vladmandic/face-api/dist/face-api.node-wasm.js');
 
 const MODELS_PATH = path.join(__dirname, '../../models');
 const THRESHOLD = 0.5; // distância máxima para considerar o mesmo rosto
+const EXTRACTION_TIMEOUT_MS = 15000;
 
 let modelosCarregados = false;
 
@@ -24,7 +25,6 @@ export async function inicializarModelos(): Promise<void> {
   await tf.ready();
 
   // Usar implementação canvas para Node.js
-  const { Canvas, Image, ImageData } = createCanvas(1, 1).constructor as any;
   (faceapi.env as any).monkeyPatch({ Canvas, Image, ImageData });
 
   await faceapi.nets.ssdMobilenetv1.loadFromDisk(MODELS_PATH);
@@ -40,18 +40,33 @@ export async function inicializarModelos(): Promise<void> {
  * Retorna null se nenhum rosto for detectado.
  */
 export async function extrairDescriptor(base64: string): Promise<Float32Array | null> {
+  if (!base64 || !base64.trim()) {
+    return null;
+  }
+
   const cleanBase64 = base64.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
   const buffer = Buffer.from(cleanBase64, 'base64');
+  if (!buffer.length) {
+    return null;
+  }
+
   const img = await loadImage(buffer);
 
   const canvas = createCanvas(img.width, img.height);
   const ctx = canvas.getContext('2d');
   ctx.drawImage(img as any, 0, 0);
 
-  const detection = await faceapi
+  const detectionTask = faceapi
     .detectSingleFace(canvas as any, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
     .withFaceLandmarks()
     .withFaceDescriptor();
+
+  const detection = await Promise.race([
+    detectionTask,
+    new Promise<null>((resolve) => {
+      setTimeout(() => resolve(null), EXTRACTION_TIMEOUT_MS);
+    })
+  ]);
 
   if (!detection) return null;
   return detection.descriptor;
