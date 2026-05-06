@@ -1,5 +1,11 @@
 import crypto from 'crypto';
 import { executarQuery } from '../database/firebird';
+import {
+  extrairDescriptor,
+  serializarDescriptor,
+  deserializarDescriptor,
+  calcularSimilaridade
+} from './faceService';
 
 interface ResultadoVerificacaoBiometrica {
   verificada: boolean;
@@ -46,57 +52,110 @@ async function possuiBiometriaCadastrada(funcionarioCodigo: number): Promise<boo
     return Number(status) === 1;
   }
 
-  const template = await obterTemplate(funcionarioCodigo);
-  const possui = !!template;
+  const row = await obterRegistroBiometria(funcionarioCodigo);
+  const possui = !!row;
   await atualizarStatusBiometria(funcionarioCodigo, possui).catch(() => undefined);
   return possui;
 }
 
-function obterTemplate(funcionarioCodigo: number): Promise<string | null> {
+function obterRegistroBiometria(funcionarioCodigo: number): Promise<{ HASH_BIOMETRIA: string; FACE_DESCRIPTOR: string | null } | null> {
   return executarQuery(
-    `SELECT HASH_BIOMETRIA FROM BIOMETRIAS_FUNCIONARIO WHERE FUNCIONARIO_CODIGO = ?`,
+    `SELECT HASH_BIOMETRIA, FACE_DESCRIPTOR FROM BIOMETRIAS_FUNCIONARIO WHERE FUNCIONARIO_CODIGO = ?`,
     [funcionarioCodigo]
-  ).then((resultado: any[]) => resultado?.[0]?.HASH_BIOMETRIA ?? null)
+  ).then((resultado: any[]) => resultado?.[0] ?? null)
    .catch(() => null);
 }
 
-function registrarTemplateBiometrico(funcionarioCodigo: number, base64Face: string): Promise<{ hash: string }> {
+async function registrarTemplateBiometrico(funcionarioCodigo: number, base64Face: string): Promise<{ hash: string }> {
   const hash = criarHashBiometria(base64Face);
-  return executarQuery(
+
+  // Extrair descriptor facial (vetor de 128 floats)
+  let descriptorJson: string | null = null;
+  try {
+    const descriptor = await extrairDescriptor(base64Face);
+    if (descriptor) {
+      descriptorJson = serializarDescriptor(descriptor);
+      console.log(`[face-api] Descriptor extraído para funcionário ${funcionarioCodigo} ✅`);
+    } else {
+      console.warn(`[face-api] Nenhum rosto detectado na imagem de cadastro do funcionário ${funcionarioCodigo}`);
+    }
+  } catch (e) {
+    console.error('[face-api] Erro ao extrair descriptor no cadastro:', e);
+  }
+
+  await executarQuery(
     `UPDATE OR INSERT INTO BIOMETRIAS_FUNCIONARIO
-       (FUNCIONARIO_CODIGO, HASH_BIOMETRIA, ATUALIZADO_EM)
-     VALUES (?, ?, CURRENT_TIMESTAMP)
+       (FUNCIONARIO_CODIGO, HASH_BIOMETRIA, FACE_DESCRIPTOR, ATUALIZADO_EM)
+     VALUES (?, ?, ?, CURRENT_TIMESTAMP)
      MATCHING (FUNCIONARIO_CODIGO)`,
-    [funcionarioCodigo, hash]
-  ).then(async () => {
-    await atualizarStatusBiometria(funcionarioCodigo, true);
-    return { hash };
-  });
+    [funcionarioCodigo, hash, descriptorJson]
+  );
+
+  await atualizarStatusBiometria(funcionarioCodigo, true);
+  return { hash };
 }
 
 async function verificarBiometria(funcionarioCodigo: number, base64Face: string): Promise<ResultadoVerificacaoBiometrica> {
   const hashAtual = criarHashBiometria(base64Face);
-  const template = await obterTemplate(funcionarioCodigo);
+  const registro = await obterRegistroBiometria(funcionarioCodigo);
 
-  if (!template) {
+  if (!registro) {
     await atualizarStatusBiometria(funcionarioCodigo, false).catch(() => undefined);
-    return {
-      verificada: false,
-      score: 0,
-      hash: hashAtual,
-      motivo: 'BIOMETRIA_NAO_CADASTRADA'
-    };
+    return { verificada: false, score: 0, hash: hashAtual, motivo: 'BIOMETRIA_NAO_CADASTRADA' };
   }
 
-  const verificada = template === hashAtual;
-  await atualizarStatusBiometria(funcionarioCodigo, true).catch(() => undefined);
+  // Tentar verificação por descriptor (face-api) se disponível
+  if (registro.FACE_DESCRIPTOR) {
+    try {
+      const descriptorAtual = await extrairDescriptor(base64Face);
+      if (!descriptorAtual) {
+        return { verificada: false, score: 0, hash: hashAtual, motivo: 'ROSTO_NAO_DETECTADO' };
+      }
 
+      const descritorSalvo = deserializarDescriptor(
+        typeof registro.FACE_DESCRIPTOR === 'object'
+          ? await lerBlob(registro.FACE_DESCRIPTOR)
+          : registro.FACE_DESCRIPTOR
+      );
+
+      const { verificada, score } = calcularSimilaridade(descriptorAtual, descritorSalvo);
+      await atualizarStatusBiometria(funcionarioCodigo, true).catch(() => undefined);
+
+      console.log(`[face-api] Funcionário ${funcionarioCodigo} - score: ${score}, verificada: ${verificada}`);
+      return { verificada, score, hash: hashAtual, motivo: verificada ? undefined : 'FACE_NAO_CORRESPONDE' };
+    } catch (e) {
+      console.error('[face-api] Erro na verificação por descriptor, fallback para hash:', e);
+    }
+  }
+
+  // Fallback: comparação de hash (legado)
+  const verificada = registro.HASH_BIOMETRIA === hashAtual;
+  await atualizarStatusBiometria(funcionarioCodigo, true).catch(() => undefined);
   return {
     verificada,
-    score: verificada ? 0.99 : 0.2,
+    score: verificada ? 0.99 : 0.1,
     hash: hashAtual,
     motivo: verificada ? undefined : 'FACE_NAO_CORRESPONDE'
   };
+}
+
+/** Lê blob do Firebird (pode vir como objeto Buffer/Stream) */
+async function lerBlob(blob: any): Promise<string> {
+  if (typeof blob === 'string') return blob;
+  if (Buffer.isBuffer(blob)) return blob.toString('utf8');
+  // node-firebird retorna blobs como função de callback
+  if (typeof blob === 'function') {
+    return new Promise((resolve, reject) => {
+      blob((err: Error, _name: string, e: any) => {
+        if (err) return reject(err);
+        const chunks: Buffer[] = [];
+        e.on('data', (chunk: Buffer) => chunks.push(chunk));
+        e.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+        e.on('error', reject);
+      });
+    });
+  }
+  return String(blob);
 }
 
 function auditarVerificacaoBiometrica(dados: RegistroBiometria): Promise<void> {

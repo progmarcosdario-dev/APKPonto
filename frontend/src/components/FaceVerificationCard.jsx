@@ -23,6 +23,12 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (cameraAtiva && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [cameraAtiva]);
+
   const iniciarCamera = async (deviceId) => {
     setErro('');
     try {
@@ -32,9 +38,6 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
         : { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 540 } };
       const stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
       setCameraAtiva(true);
       setStatus('Camera ativa. Enquadre o rosto e confirme.');
     } catch (cameraErro) {
@@ -50,7 +53,18 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
       }
-      await iniciarCamera(novoDeviceId);
+      try {
+        const video = novoDeviceId
+          ? { deviceId: { exact: novoDeviceId }, width: { ideal: 720 }, height: { ideal: 540 } }
+          : { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 540 } };
+        const stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (_e) {
+        setErro('Nao foi possivel acessar a camera selecionada.');
+      }
     }
   };
 

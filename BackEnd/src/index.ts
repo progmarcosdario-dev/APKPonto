@@ -9,6 +9,7 @@ import syncRoutes from './routes/syncRoutes';
 import biometriaRoutes from './routes/biometriaRoutes';
 import logger from './utils/logger';
 import swaggerSpecs from './swagger/swaggerConfig';
+import { inicializarModelos } from './services/faceService';
 
 const app: Express = express();
 
@@ -41,6 +42,10 @@ firebirdDb.inicializarConexao()
   })
   .then(() => {
     logger.info('Tabelas de biometria verificadas no Firebird');
+    return inicializarModelos();
+  })
+  .then(() => {
+    logger.info('Modelos face-api carregados');
   })
   .catch((erro: any) => {
     logger.warn('Aviso: Firebird não disponível no momento', { erro: erro?.message || String(erro) });

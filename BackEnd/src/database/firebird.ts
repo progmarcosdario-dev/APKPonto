@@ -443,10 +443,21 @@ async function inicializarTabelasBiometria(): Promise<void> {
       CREATE TABLE BIOMETRIAS_FUNCIONARIO (
         FUNCIONARIO_CODIGO INTEGER NOT NULL PRIMARY KEY,
         HASH_BIOMETRIA VARCHAR(64) NOT NULL,
+        FACE_DESCRIPTOR BLOB SUB_TYPE TEXT,
         ATUALIZADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `, []);
     console.log('Tabela BIOMETRIAS_FUNCIONARIO criada no Firebird ✅');
+  } else {
+    // Adicionar coluna FACE_DESCRIPTOR se ainda não existir (migração)
+    const colunaExiste = await executarQuery(
+      `SELECT COUNT(*) AS CNT FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = 'BIOMETRIAS_FUNCIONARIO' AND RDB$FIELD_NAME = 'FACE_DESCRIPTOR'`,
+      []
+    ).then((r: any[]) => Number(r?.[0]?.CNT) > 0).catch(() => false);
+    if (!colunaExiste) {
+      await executarQuery(`ALTER TABLE BIOMETRIAS_FUNCIONARIO ADD FACE_DESCRIPTOR BLOB SUB_TYPE TEXT`, []);
+      console.log('Coluna FACE_DESCRIPTOR adicionada em BIOMETRIAS_FUNCIONARIO ✅');
+    }
   }
 
   const statusExiste = await tabelaExiste('BIOMETRIA_STATUS_FUNCIONARIO');
