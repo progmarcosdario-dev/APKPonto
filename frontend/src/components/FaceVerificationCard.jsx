@@ -45,8 +45,8 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
     }
   }, [autoStart, cameraAtiva]);
 
-  const iniciarContagemCaptura = () => {
-    if (!autoCapture || !cameraAtiva) {
+  const iniciarContagemCaptura = (forcado = false) => {
+    if (!autoCapture || (!cameraAtiva && !forcado)) {
       return;
     }
 
@@ -87,7 +87,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       await carregarDispositivos();
       setStatus('Camera ativa. Enquadre o rosto e confirme.');
       if (autoCapture) {
-        setTimeout(() => iniciarContagemCaptura(), 250);
+        setTimeout(() => iniciarContagemCaptura(true), 250);
       }
     } catch (cameraErro) {
       setErro('Nao foi possivel acessar a camera. Verifique permissoes do navegador.');
@@ -112,7 +112,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
           videoRef.current.srcObject = stream;
         }
         if (autoCapture) {
-          setTimeout(() => iniciarContagemCaptura(), 250);
+          setTimeout(() => iniciarContagemCaptura(true), 250);
         }
       } catch (_e) {
         setErro('Nao foi possivel acessar a camera selecionada.');
