@@ -13,18 +13,21 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   const [dispositivos, setDispositivos] = useState([]);
   const [deviceIdSelecionado, setDeviceIdSelecionado] = useState('');
 
+  const carregarDispositivos = async () => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter((d) => d.kind === 'videoinput');
+    setDispositivos(cameras);
+    if (cameras.length > 0 && !deviceIdSelecionado) {
+      setDeviceIdSelecionado(cameras[0].deviceId);
+    }
+  };
+
   useEffect(() => {
     if (!navigator.mediaDevices) {
       setErro('Câmera não disponível. Acesse via HTTPS.');
       return;
     }
-    navigator.mediaDevices.enumerateDevices()
-      .then((devices) => {
-        const cameras = devices.filter((d) => d.kind === 'videoinput');
-        setDispositivos(cameras);
-        if (cameras.length > 0) setDeviceIdSelecionado(cameras[0].deviceId);
-      })
-      .catch(() => {});
+    carregarDispositivos().catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -43,6 +46,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       const stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
       streamRef.current = stream;
       setCameraAtiva(true);
+      await carregarDispositivos();
       setStatus('Camera ativa. Enquadre o rosto e confirme.');
     } catch (cameraErro) {
       setErro('Nao foi possivel acessar a camera. Verifique permissoes do navegador.');
@@ -143,12 +147,13 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       <p style={{ margin: 0, color: '#2A2A2A', fontWeight: 600, fontSize: '1.1rem' }}>Validacao Facial</p>
       <p style={{ margin: '0.25rem 0 0.5rem 0', color: '#5A5A5A', fontSize: '0.95rem' }}>{status}</p>
 
-      {dispositivos.length > 1 && (
+      {dispositivos.length > 0 && (
         <div style={{ marginBottom: '0.5rem' }}>
           <label style={{ display: 'block', color: '#374151', fontWeight: 600, marginBottom: '0.2rem', fontSize: '0.85rem' }}>Camera:</label>
           <select
             value={deviceIdSelecionado}
             onChange={(e) => trocarCamera(e.target.value)}
+            disabled={dispositivos.length <= 1}
             style={{ width: '100%', padding: '0.4rem 0.6rem', borderRadius: '0.4rem', border: '1px solid #ddd', fontSize: '0.85rem', backgroundColor: '#f9fafb' }}
           >
             {dispositivos.map((d, i) => (

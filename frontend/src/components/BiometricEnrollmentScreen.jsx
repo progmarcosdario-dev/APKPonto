@@ -13,18 +13,21 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
   const [dispositivos, setDispositivos] = useState([]);
   const [deviceIdSelecionado, setDeviceIdSelecionado] = useState('');
 
+  const carregarDispositivos = async () => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter((d) => d.kind === 'videoinput');
+    setDispositivos(cameras);
+    if (cameras.length > 0 && !deviceIdSelecionado) {
+      setDeviceIdSelecionado(cameras[0].deviceId);
+    }
+  };
+
   useEffect(() => {
     if (!navigator.mediaDevices) {
       setErro('Câmera não disponível. Acesse via HTTPS ou use o servidor seguro (porta 3000 com HTTPS).');
       return;
     }
-    navigator.mediaDevices.enumerateDevices()
-      .then((devices) => {
-        const cameras = devices.filter((d) => d.kind === 'videoinput');
-        setDispositivos(cameras);
-        if (cameras.length > 0) setDeviceIdSelecionado(cameras[0].deviceId);
-      })
-      .catch(() => {});
+    carregarDispositivos().catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -43,6 +46,7 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
       const stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
       streamRef.current = stream;
       setCameraAtiva(true);
+      await carregarDispositivos();
     } catch (_e) {
       setErro('Nao foi possivel acessar a camera. Verifique as permissoes.');
     }
@@ -131,12 +135,13 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
           {employeeName}, voce ainda nao possui biometria cadastrada. Capture seu rosto para continuar.
         </p>
 
-        {dispositivos.length > 1 && (
+        {dispositivos.length > 0 && (
           <div style={{ marginBottom: '0.75rem' }}>
             <label style={{ display: 'block', color: '#374151', fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.88rem' }}>Camera:</label>
             <select
               value={deviceIdSelecionado}
               onChange={(e) => trocarCamera(e.target.value)}
+              disabled={dispositivos.length <= 1}
               style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', fontSize: '0.88rem', backgroundColor: '#f9fafb' }}
             >
               {dispositivos.map((d, i) => (
