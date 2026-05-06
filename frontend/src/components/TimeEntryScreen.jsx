@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, User, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import API from '../api/api';
 import logo from '../assets/logo.png';
+import FaceVerificationCard from './FaceVerificationCard.jsx';
 
 export default function TimeEntryScreen({ employeeName, employeeCode, onSave, onBack, completedEntries }) {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -11,6 +11,7 @@ export default function TimeEntryScreen({ employeeName, employeeCode, onSave, on
   const [isLoading, setIsLoading] = useState(false);
   const [autoSelectedType, setAutoSelectedType] = useState(null);
   const [typeLabel, setTypeLabel] = useState('');
+  const [biometriaValidada, setBiometriaValidada] = useState(null);
 
   // Mapa de tipos para labels
   const tipoMarcacaoMap = {
@@ -75,7 +76,13 @@ export default function TimeEntryScreen({ employeeName, employeeCode, onSave, on
 
     setIsLoading(true);
     try {
-      await onSave(autoSelectedType);
+      if (!biometriaValidada?.verificada) {
+        setAlertMessage('Validacao facial obrigatoria antes de confirmar.');
+        setAlertType('warning');
+        return;
+      }
+
+      await onSave(autoSelectedType, biometriaValidada);
     } catch (error) {
       console.error('Erro ao confirmar:', error);
       setAlertMessage(error.message || 'Erro ao registrar ponto');
@@ -270,10 +277,15 @@ export default function TimeEntryScreen({ employeeName, employeeCode, onSave, on
             </div>
           )}
 
+          <FaceVerificationCard
+            funcionarioCodigo={employeeCode}
+            onVerifiedChange={setBiometriaValidada}
+          />
+
           {/* Botão Confirmar integrado logo abaixo do tipo */}
           <motion.button
             onClick={handleConfirm}
-            disabled={!autoSelectedType || isLoading}
+            disabled={!autoSelectedType || isLoading || !biometriaValidada?.verificada}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             whileHover={!isLoading ? { scale: 1.02 } : {}}

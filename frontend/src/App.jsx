@@ -99,7 +99,7 @@ function App() {
     setModal({ isOpen: false, title: '', message: '', type: 'error', confirmText: 'OK' });
   };
 
-  const handleSaveEntry = async (type) => {
+  const handleSaveEntry = async (type, biometria) => {
     try {
       const now = new Date();
       const timestamp = now.toLocaleTimeString('pt-BR', {
@@ -111,7 +111,8 @@ function App() {
       // Enviar para backend com o tipo selecionado
       const response = await API.post('/ponto/registrar', {
         funcionario_codigo: funcionario?.codigo || '',
-        tipo_marcacao: type
+        tipo_marcacao: type,
+        biometria
       });
 
       // Pegar o tipo de marcação retornado pelo backend (deve ser o mesmo que enviamos)

@@ -64,6 +64,29 @@ function initialize(): void {
         sincronizado BOOLEAN DEFAULT 0,
         UNIQUE(tabela, registro_id, acao)
       )
+    `);
+
+    // Template biométrico local por funcionário
+    database.run(`
+      CREATE TABLE IF NOT EXISTS biometrias_funcionario (
+        funcionario_codigo INTEGER PRIMARY KEY,
+        hash_biometria TEXT NOT NULL,
+        atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (funcionario_codigo) REFERENCES funcionarios(codigo_firebird)
+      )
+    `);
+
+    // Auditoria das verificações biométricas realizadas no momento do ponto
+    database.run(`
+      CREATE TABLE IF NOT EXISTS ponto_biometria_auditoria (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        funcionario_codigo INTEGER NOT NULL,
+        hash_biometria TEXT NOT NULL,
+        score REAL NOT NULL,
+        origem TEXT NOT NULL,
+        metodo TEXT NOT NULL,
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
     `, (err: Error | null) => {
       if (!err) {
         console.log('Tabelas do banco local criadas/verificadas ✅');

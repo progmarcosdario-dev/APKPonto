@@ -6,6 +6,7 @@ import * as firebirdDb from './database/firebird';
 import authRoutes from './routes/authRoutes';
 import pontoRoutes from './routes/pontoRoutes';
 import syncRoutes from './routes/syncRoutes';
+import biometriaRoutes from './routes/biometriaRoutes';
 import logger from './utils/logger';
 import swaggerSpecs from './swagger/swaggerConfig';
 
@@ -46,6 +47,7 @@ firebirdDb.inicializarConexao()
 app.use('/api/auth', authRoutes);
 app.use('/api/ponto', pontoRoutes);
 app.use('/api/sync', syncRoutes);
+app.use('/api/biometria', biometriaRoutes);
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve);

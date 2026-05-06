@@ -18,11 +18,20 @@ const getApiBaseUrl = (): string => {
 const API_BASE_URL = getApiBaseUrl();
 
 // Interface para registros pendentes offline
+interface DadosBiometria {
+  verificada: boolean;
+  score: number;
+  hash: string;
+  origem: 'web' | 'mobile';
+  metodo: 'camera' | 'upload' | 'manual';
+}
+
 interface RegistroPendente {
   id?: number;
   funcionario_codigo: string;
   tipo_marcacao_codigo: string;
   observacao?: string;
+  biometria?: DadosBiometria;
 }
 
 // Abrir IndexedDB para armazenamento offline
@@ -116,12 +125,14 @@ class ClienteAPI {
   async registrarPonto(
     funcionario_codigo: string,
     tipo_marcacao_codigo: string,
-    observacao?: string
+    observacao?: string,
+    biometria?: DadosBiometria
   ) {
     const registro = {
       funcionario_codigo,
       tipo_marcacao_codigo,
       observacao,
+      biometria,
     };
 
     try {
@@ -147,6 +158,14 @@ class ClienteAPI {
       console.error('[API] Falha ao buscar histórico:', error);
       return [];
     }
+  }
+
+  async validarBiometria(funcionario_codigo: string, face_base64: string) {
+    return this.post('/biometria/validar', { funcionario_codigo, face_base64 });
+  }
+
+  async cadastrarBiometria(funcionario_codigo: string, face_base64: string) {
+    return this.post('/biometria/cadastrar', { funcionario_codigo, face_base64 });
   }
 
   async obterStatusSync() {

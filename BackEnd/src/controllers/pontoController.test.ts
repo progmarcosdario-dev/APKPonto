@@ -6,6 +6,9 @@ import logger from '../utils/logger';
 // Mock das dependências
 jest.mock('../database/firebird');
 jest.mock('../utils/logger');
+jest.mock('../services/biometriaService', () => ({
+  auditarVerificacaoBiometrica: jest.fn().mockResolvedValue(undefined)
+}));
 
 describe('Ponto Controller', () => {
   let mockRequest: Partial<Request>;
@@ -208,7 +211,16 @@ describe('Ponto Controller', () => {
 
   describe('registrarPonto - Validações e Duplicata', () => {
     it('deve retornar erro quando funcionario_codigo não é informado', async () => {
-      mockRequest.body = { funcionario_codigo: undefined };
+      mockRequest.body = {
+        funcionario_codigo: undefined,
+        biometria: {
+          verificada: true,
+          score: 0.9,
+          hash: 'hash-1',
+          origem: 'web',
+          metodo: 'camera'
+        }
+      };
 
       await pontoController.registrarPonto(mockRequest as Request, mockResponse as Response);
 
@@ -222,7 +234,16 @@ describe('Ponto Controller', () => {
     });
 
     it('deve retornar erro em caso de duplicata nos últimos 10 minutos', async () => {
-      mockRequest.body = { funcionario_codigo: '12345' };
+      mockRequest.body = {
+        funcionario_codigo: '12345',
+        biometria: {
+          verificada: true,
+          score: 0.92,
+          hash: 'hash-dup',
+          origem: 'web',
+          metodo: 'camera'
+        }
+      };
 
       (firebirdDb.verificarDuplicataRecente as jest.Mock).mockResolvedValue(true);
 
@@ -234,6 +255,58 @@ describe('Ponto Controller', () => {
           sucesso: false,
           mensagem: 'Você já bateu o ponto nos últimos 10 minutos',
           erro: 'DUPLICATA_10_MINUTOS'
+        })
+      );
+    });
+
+    it('deve aceitar payload do mobile e registrar com sucesso', async () => {
+      mockRequest.body = {
+        codigoFuncionario: '12345',
+        tipo: 'entrada',
+        biometria: {
+          verificada: true,
+          score: 0.95,
+          hash: 'hash-ok',
+          origem: 'mobile',
+          metodo: 'camera'
+        }
+      };
+
+      (firebirdDb.verificarDuplicataRecente as jest.Mock).mockResolvedValue(false);
+      (firebirdDb.obterHistoricoPontos as jest.Mock).mockResolvedValue([]);
+      (firebirdDb.obterDadosFuncionario as jest.Mock).mockResolvedValue(null);
+      (firebirdDb.registrarPontoFirebird as jest.Mock).mockResolvedValue({ codigo: 999 });
+
+      await pontoController.registrarPonto(mockRequest as Request, mockResponse as Response);
+
+      expect(firebirdDb.registrarPontoFirebird).toHaveBeenCalledWith(
+        expect.objectContaining({
+          funcionario: 12345,
+          tipo_marcacao: 1
+        })
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(201);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sucesso: true,
+          tipo_marcacao: 1
+        })
+      );
+    });
+
+    it('deve retornar erro quando biometria obrigatoria nao for enviada', async () => {
+      mockRequest.body = {
+        funcionario_codigo: '12345',
+        tipo_marcacao: 1
+      };
+
+      await pontoController.registrarPonto(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sucesso: false,
+          mensagem: 'Verificação biométrica obrigatória'
         })
       );
     });

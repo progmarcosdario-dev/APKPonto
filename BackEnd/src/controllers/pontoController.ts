@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { db } from '../database/db';
 import * as firebirdDb from '../database/firebird';
 import logger from '../utils/logger';
+import { normalizarRegistroPontoPayload } from '../utils/contractNormalizer';
+import { auditarVerificacaoBiometrica } from '../services/biometriaService';
 
 // Função auxiliar: Verificar se há registro nos últimos 10 minutos (consultando Firebird)
 async function verificarDuplicataRecente(funcionario_codigo: string, dataRegistro: string): Promise<boolean> {
@@ -245,12 +246,20 @@ async function obterTiposMarcacao(req: Request, res: Response): Promise<any> {
 
 // Registrar ponto - Com validação e auto-seleção de tipo
 async function registrarPonto(req: Request, res: Response): Promise<any> {
-  const { funcionario_codigo, tipo_marcacao: tipoRecebido } = req.body;
+  const dadosNormalizados = normalizarRegistroPontoPayload(req.body);
+  const { funcionario_codigo, tipo_marcacao: tipoRecebido, observacao, biometria, erros } = dadosNormalizados;
 
   console.log(`[pontoController.registrarPonto] Iniciando registro de ponto`);
   console.log(`[pontoController.registrarPonto] Corpo da requisição:`, req.body);
   console.log(`[pontoController.registrarPonto] funcionario_codigo extraído:`, funcionario_codigo);
   console.log(`[pontoController.registrarPonto] tipo_marcacao recebido:`, tipoRecebido);
+
+  if (erros.length > 0) {
+    return res.status(400).json({
+      sucesso: false,
+      mensagem: erros[0]
+    });
+  }
 
   if (!funcionario_codigo) {
     return res.status(400).json({
@@ -310,18 +319,34 @@ async function registrarPonto(req: Request, res: Response): Promise<any> {
         tipo_marcacao: tipoMarcacao,
         data: dataRegistro,
         hora: horaRegistro,
-        observacao: ''
+        observacao
       });
 
       console.log(`[pontoController] Ponto registrado no Firebird com sucesso. Código: ${resultado.codigo}`);
       console.log(`[pontoController] Mensagem de atraso: ${mensagemAtraso}`);
       console.log(`[pontoController] Minutosatraso: ${minutosAtraso}`);
 
+      try {
+        await auditarVerificacaoBiometrica({
+          funcionario_codigo: parseInt(funcionario_codigo),
+          hash_biometria: biometria.hash,
+          score: biometria.score,
+          origem: biometria.origem,
+          metodo: biometria.metodo
+        });
+      } catch (auditoriaErro: any) {
+        logger.warn('Falha ao auditar biometria localmente', { erro: auditoriaErro?.message || String(auditoriaErro) });
+      }
+
       return res.status(201).json({
         sucesso: true,
         mensagem: 'Ponto registrado com sucesso',
         codigo_ponto: resultado.codigo,
         tipo_marcacao: tipoMarcacao,
+        biometria: {
+          verificada: biometria.verificada,
+          score: biometria.score
+        },
         atraso: mensagemAtraso ? { minutos: minutosAtraso, mensagem: mensagemAtraso } : null
       });
     } catch (firebaseErr: any) {

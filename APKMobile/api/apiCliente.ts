@@ -1,8 +1,11 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
-interface DadosPonto {
-  tipo: string;
-  timestamp: string;
+interface DadosBiometria {
+  verificada: boolean;
+  score: number;
+  hash: string;
+  origem: 'mobile';
+  metodo: 'camera';
 }
 
 interface RespostaAPI {
@@ -34,11 +37,20 @@ class APICliente {
     return { data: resposta.data, status: resposta.status };
   }
 
-  async registrarPonto(codigoFuncionario: string, tipo: string): Promise<RespostaAPI> {
+  async registrarPonto(codigoFuncionario: string, tipo: string, biometria: DadosBiometria): Promise<RespostaAPI> {
     const resposta: AxiosResponse = await instanciaAPI.post('/ponto/registrar', {
       codigoFuncionario,
       tipo,
       timestamp: new Date().toISOString(),
+      biometria
+    });
+    return { data: resposta.data, status: resposta.status };
+  }
+
+  async validarBiometria(codigoFuncionario: string, face_base64: string): Promise<RespostaAPI> {
+    const resposta: AxiosResponse = await instanciaAPI.post('/biometria/validar', {
+      codigoFuncionario,
+      face_base64
     });
     return { data: resposta.data, status: resposta.status };
   }
