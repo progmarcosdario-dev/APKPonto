@@ -246,29 +246,32 @@ async function obterTiposMarcacao(req: Request, res: Response): Promise<any> {
 
 // Registrar ponto - Com validação e auto-seleção de tipo
 async function registrarPonto(req: Request, res: Response): Promise<any> {
-  const dadosNormalizados = normalizarRegistroPontoPayload(req.body);
-  const { funcionario_codigo, tipo_marcacao: tipoRecebido, observacao, biometria, erros } = dadosNormalizados;
-
   console.log(`[pontoController.registrarPonto] Iniciando registro de ponto`);
   console.log(`[pontoController.registrarPonto] Corpo da requisição:`, req.body);
-  console.log(`[pontoController.registrarPonto] funcionario_codigo extraído:`, funcionario_codigo);
-  console.log(`[pontoController.registrarPonto] tipo_marcacao recebido:`, tipoRecebido);
-
-  if (erros.length > 0) {
-    return res.status(400).json({
-      sucesso: false,
-      mensagem: erros[0]
-    });
-  }
-
-  if (!funcionario_codigo) {
-    return res.status(400).json({
-      sucesso: false,
-      mensagem: 'Código do funcionário é obrigatório'
-    });
-  }
 
   try {
+    const trabalharFacial = await firebirdDb.obterTrabalharFacial();
+    const dadosNormalizados = normalizarRegistroPontoPayload(req.body, { exigirBiometria: trabalharFacial });
+    const { funcionario_codigo, tipo_marcacao: tipoRecebido, observacao, biometria, erros } = dadosNormalizados;
+
+    console.log(`[pontoController.registrarPonto] funcionario_codigo extraído:`, funcionario_codigo);
+    console.log(`[pontoController.registrarPonto] tipo_marcacao recebido:`, tipoRecebido);
+    console.log(`[pontoController.registrarPonto] trabalhar_facial:`, trabalharFacial);
+
+    if (erros.length > 0) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: erros[0]
+      });
+    }
+
+    if (!funcionario_codigo) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Código do funcionário é obrigatório'
+      });
+    }
+
     // Usar data/hora do cliente ou gerar automaticamente
     const agora = new Date();
     const dataRegistro = agora.toISOString().split('T')[0];
@@ -326,16 +329,18 @@ async function registrarPonto(req: Request, res: Response): Promise<any> {
       console.log(`[pontoController] Mensagem de atraso: ${mensagemAtraso}`);
       console.log(`[pontoController] Minutosatraso: ${minutosAtraso}`);
 
-      try {
-        await auditarVerificacaoBiometrica({
-          funcionario_codigo: parseInt(funcionario_codigo),
-          hash_biometria: biometria.hash,
-          score: biometria.score,
-          origem: biometria.origem,
-          metodo: biometria.metodo
-        });
-      } catch (auditoriaErro: any) {
-        logger.warn('Falha ao auditar biometria localmente', { erro: auditoriaErro?.message || String(auditoriaErro) });
+      if (trabalharFacial && biometria.verificada && biometria.hash) {
+        try {
+          await auditarVerificacaoBiometrica({
+            funcionario_codigo: parseInt(funcionario_codigo),
+            hash_biometria: biometria.hash,
+            score: biometria.score,
+            origem: biometria.origem,
+            metodo: biometria.metodo
+          });
+        } catch (auditoriaErro: any) {
+          logger.warn('Falha ao auditar biometria localmente', { erro: auditoriaErro?.message || String(auditoriaErro) });
+        }
       }
 
       return res.status(201).json({
@@ -347,6 +352,7 @@ async function registrarPonto(req: Request, res: Response): Promise<any> {
           verificada: biometria.verificada,
           score: biometria.score
         },
+        trabalhar_facial: trabalharFacial,
         atraso: mensagemAtraso ? { minutos: minutosAtraso, mensagem: mensagemAtraso } : null
       });
     } catch (firebaseErr: any) {

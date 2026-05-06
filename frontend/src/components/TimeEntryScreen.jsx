@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.png';
 import FaceVerificationCard from './FaceVerificationCard.jsx';
 
-export default function TimeEntryScreen({ employeeName, employeeCode, onSave, onBack, completedEntries }) {
+export default function TimeEntryScreen({ employeeName, employeeCode, trabalharFacial = true, onSave, onBack, completedEntries }) {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [alertMessage, setAlertMessage] = useState(null);
   const [alertType, setAlertType] = useState('error'); // 'error' ou 'warning'
@@ -76,13 +76,13 @@ export default function TimeEntryScreen({ employeeName, employeeCode, onSave, on
 
     setIsLoading(true);
     try {
-      if (!biometriaValidada?.verificada) {
+      if (trabalharFacial && !biometriaValidada?.verificada) {
         setAlertMessage('Validacao facial obrigatoria antes de confirmar.');
         setAlertType('warning');
         return;
       }
 
-      await onSave(autoSelectedType, biometriaValidada);
+      await onSave(autoSelectedType, trabalharFacial ? biometriaValidada : undefined);
     } catch (error) {
       console.error('Erro ao confirmar:', error);
       setAlertMessage(error.message || 'Erro ao registrar ponto');
@@ -277,15 +277,19 @@ export default function TimeEntryScreen({ employeeName, employeeCode, onSave, on
             </div>
           )}
 
-          <FaceVerificationCard
-            funcionarioCodigo={employeeCode}
-            onVerifiedChange={setBiometriaValidada}
-          />
+          {trabalharFacial && (
+            <FaceVerificationCard
+              funcionarioCodigo={employeeCode}
+              onVerifiedChange={setBiometriaValidada}
+              autoStart
+              autoCapture
+            />
+          )}
 
           {/* Botão Confirmar integrado logo abaixo do tipo */}
           <motion.button
             onClick={handleConfirm}
-            disabled={!autoSelectedType || isLoading || !biometriaValidada?.verificada}
+            disabled={!autoSelectedType || isLoading || (trabalharFacial && !biometriaValidada?.verificada)}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             whileHover={!isLoading ? { scale: 1.02 } : {}}

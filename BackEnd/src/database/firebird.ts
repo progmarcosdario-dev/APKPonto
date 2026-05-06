@@ -433,6 +433,42 @@ async function tabelaExiste(nome: string): Promise<boolean> {
   return Number(resultado?.[0]?.CNT ?? resultado?.[0]?.cnt ?? 0) > 0;
 }
 
+async function colunaExiste(tabela: string, coluna: string): Promise<boolean> {
+  const resultado = await executarQuery(
+    `SELECT COUNT(*) AS CNT
+       FROM RDB$RELATION_FIELDS
+      WHERE RDB$RELATION_NAME = ?
+        AND RDB$FIELD_NAME = ?`,
+    [tabela.toUpperCase(), coluna.toUpperCase()]
+  );
+  return Number(resultado?.[0]?.CNT ?? resultado?.[0]?.cnt ?? 0) > 0;
+}
+
+async function obterTrabalharFacial(): Promise<boolean> {
+  try {
+    const parametrosExiste = await tabelaExiste('PARAMETROS');
+    if (!parametrosExiste) {
+      return true;
+    }
+
+    const campoExiste = await colunaExiste('PARAMETROS', 'TRABALHAR_FACIAL');
+    if (!campoExiste) {
+      return true;
+    }
+
+    const resultado = await executarQuery(
+      `SELECT FIRST 1 COALESCE(TRABALHAR_FACIAL, 1) AS TRABALHAR_FACIAL FROM PARAMETROS`,
+      []
+    );
+
+    const valor = Number(resultado?.[0]?.TRABALHAR_FACIAL ?? resultado?.[0]?.trabalhar_facial ?? 1);
+    return valor === 1;
+  } catch (erro) {
+    console.warn('Falha ao obter parâmetro TRABALHAR_FACIAL. Mantendo facial ativo por padrão.', erro);
+    return true;
+  }
+}
+
 /**
  * Criar tabelas de biometria no Firebird se não existirem
  */
@@ -450,11 +486,8 @@ async function inicializarTabelasBiometria(): Promise<void> {
     console.log('Tabela BIOMETRIAS_FUNCIONARIO criada no Firebird ✅');
   } else {
     // Adicionar coluna FACE_DESCRIPTOR se ainda não existir (migração)
-    const colunaExiste = await executarQuery(
-      `SELECT COUNT(*) AS CNT FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = 'BIOMETRIAS_FUNCIONARIO' AND RDB$FIELD_NAME = 'FACE_DESCRIPTOR'`,
-      []
-    ).then((r: any[]) => Number(r?.[0]?.CNT) > 0).catch(() => false);
-    if (!colunaExiste) {
+    const descriptorExiste = await colunaExiste('BIOMETRIAS_FUNCIONARIO', 'FACE_DESCRIPTOR');
+    if (!descriptorExiste) {
       await executarQuery(`ALTER TABLE BIOMETRIAS_FUNCIONARIO ADD FACE_DESCRIPTOR BLOB SUB_TYPE TEXT`, []);
       console.log('Coluna FACE_DESCRIPTOR adicionada em BIOMETRIAS_FUNCIONARIO ✅');
     }
@@ -486,6 +519,15 @@ async function inicializarTabelasBiometria(): Promise<void> {
     `, []);
     console.log('Tabela PONTO_BIOMETRIA_AUDITORIA criada no Firebird ✅');
   }
+
+  const parametrosExiste = await tabelaExiste('PARAMETROS');
+  if (parametrosExiste) {
+    const trabalharFacialExiste = await colunaExiste('PARAMETROS', 'TRABALHAR_FACIAL');
+    if (!trabalharFacialExiste) {
+      await executarQuery(`ALTER TABLE PARAMETROS ADD TRABALHAR_FACIAL SMALLINT DEFAULT 1`, []);
+      console.log('Coluna TRABALHAR_FACIAL adicionada em PARAMETROS ✅');
+    }
+  }
 }
 
 export {
@@ -501,6 +543,7 @@ export {
   fecharConexao,
   invalidarCache,
   inicializarTabelasBiometria,
+  obterTrabalharFacial,
   firebirdConfig,
   // Types
   type Funcionario,

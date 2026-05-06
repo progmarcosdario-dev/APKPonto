@@ -14,6 +14,10 @@ interface RegistroPontoNormalizado {
   erros: string[];
 }
 
+interface NormalizarRegistroOptions {
+  exigirBiometria?: boolean;
+}
+
 const MAPA_TIPO_STRING_PARA_CODIGO: Record<string, number> = {
   entrada: 1,
   inicio: 1,
@@ -50,7 +54,8 @@ function normalizarTipoMarcacao(valor: unknown): number | undefined {
   return undefined;
 }
 
-function normalizarRegistroPontoPayload(payload: any): RegistroPontoNormalizado {
+function normalizarRegistroPontoPayload(payload: any, options: NormalizarRegistroOptions = {}): RegistroPontoNormalizado {
+  const exigirBiometria = options.exigirBiometria !== false;
   const erros: string[] = [];
 
   const funcionarioRaw = payload?.funcionario_codigo ?? payload?.codigoFuncionario ?? payload?.codigo;
@@ -89,7 +94,7 @@ function normalizarRegistroPontoPayload(payload: any): RegistroPontoNormalizado 
     metodo: metodoRaw === 'camera' || metodoRaw === 'upload' || metodoRaw === 'manual' ? metodoRaw : 'desconhecido'
   };
 
-  if (!biometria.verificada) {
+  if (exigirBiometria && !biometria.verificada) {
     erros.push('Verificação biométrica obrigatória');
   }
 
@@ -97,7 +102,7 @@ function normalizarRegistroPontoPayload(payload: any): RegistroPontoNormalizado 
     erros.push('Score biométrico insuficiente');
   }
 
-  if (!biometria.hash) {
+  if (exigirBiometria && !biometria.hash) {
     erros.push('Hash biométrico obrigatório');
   }
 
@@ -111,4 +116,4 @@ function normalizarRegistroPontoPayload(payload: any): RegistroPontoNormalizado 
 }
 
 export { normalizarRegistroPontoPayload, normalizarTipoMarcacao };
-export type { RegistroPontoNormalizado, DadosBiometriaNormalizados };
+export type { RegistroPontoNormalizado, DadosBiometriaNormalizados, NormalizarRegistroOptions };

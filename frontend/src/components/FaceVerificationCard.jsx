@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import API from '../api/api';
 
-export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChange }) {
+export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChange, autoStart = false, autoCapture = false }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
+  const countdownRef = useRef(null);
 
   const [cameraAtiva, setCameraAtiva] = useState(false);
   const [capturando, setCapturando] = useState(false);
@@ -12,6 +13,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   const [status, setStatus] = useState('Aguardando validação facial');
   const [dispositivos, setDispositivos] = useState([]);
   const [deviceIdSelecionado, setDeviceIdSelecionado] = useState('');
+  const [contagemRegressiva, setContagemRegressiva] = useState(null);
 
   const carregarDispositivos = async () => {
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -36,6 +38,40 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
     }
   }, [cameraAtiva]);
 
+  useEffect(() => {
+    if (autoStart && !cameraAtiva) {
+      iniciarCamera();
+    }
+  }, [autoStart, cameraAtiva]);
+
+  const iniciarContagemCaptura = () => {
+    if (!autoCapture || !cameraAtiva) {
+      return;
+    }
+
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+
+    let contador = 3;
+    setContagemRegressiva(contador);
+    setStatus('Posicione o rosto. Captura automática em andamento...');
+
+    countdownRef.current = setInterval(() => {
+      contador -= 1;
+      if (contador > 0) {
+        setContagemRegressiva(contador);
+        return;
+      }
+
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+      setContagemRegressiva(null);
+      capturarEValidar();
+    }, 1000);
+  };
+
   const iniciarCamera = async (deviceId) => {
     setErro('');
     try {
@@ -48,6 +84,9 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       setCameraAtiva(true);
       await carregarDispositivos();
       setStatus('Camera ativa. Enquadre o rosto e confirme.');
+      if (autoCapture) {
+        setTimeout(() => iniciarContagemCaptura(), 250);
+      }
     } catch (cameraErro) {
       setErro('Nao foi possivel acessar a camera. Verifique permissoes do navegador.');
       setStatus('Validacao facial indisponivel');
@@ -70,6 +109,9 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
+        if (autoCapture) {
+          setTimeout(() => iniciarContagemCaptura(), 250);
+        }
       } catch (_e) {
         setErro('Nao foi possivel acessar a camera selecionada.');
       }
@@ -77,6 +119,11 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   };
 
   const pararCamera = () => {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+    setContagemRegressiva(null);
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -122,6 +169,9 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
           setStatus('Rosto nao validado. Tente novamente.');
         }
         onVerifiedChange(null);
+        if (autoCapture && cameraAtiva) {
+          iniciarContagemCaptura();
+        }
         return;
       }
 
@@ -137,10 +187,21 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
     } catch (validacaoErro) {
       setErro(validacaoErro?.message || 'Falha ao validar biometria');
       onVerifiedChange(null);
+      if (autoCapture && cameraAtiva) {
+        iniciarContagemCaptura();
+      }
     } finally {
       setCapturando(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div style={{ width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.75)', borderRadius: '1rem', padding: '0.75rem' }}>
@@ -177,8 +238,14 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
 
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
+      {cameraAtiva && autoCapture && contagemRegressiva && (
+        <p style={{ margin: '0 0 0.5rem 0', color: '#1f2937', fontWeight: 700, fontSize: '1rem' }}>
+          Capturando em {contagemRegressiva}...
+        </p>
+      )}
+
       <div style={{ display: 'flex', gap: '0.5rem' }}>
-        {!cameraAtiva && (
+        {!cameraAtiva && !autoStart && (
           <button
             type="button"
             onClick={() => iniciarCamera()}
@@ -190,14 +257,16 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
 
         {cameraAtiva && (
           <>
-            <button
-              type="button"
-              onClick={capturarEValidar}
-              disabled={capturando}
-              style={{ flex: 1, border: 'none', borderRadius: '0.5rem', backgroundColor: '#0F7C3E', color: '#fff', padding: '0.65rem', fontWeight: 600, opacity: capturando ? 0.7 : 1 }}
-            >
-              {capturando ? 'Validando...' : 'Capturar e validar'}
-            </button>
+            {!autoCapture && (
+              <button
+                type="button"
+                onClick={capturarEValidar}
+                disabled={capturando}
+                style={{ flex: 1, border: 'none', borderRadius: '0.5rem', backgroundColor: '#0F7C3E', color: '#fff', padding: '0.65rem', fontWeight: 600, opacity: capturando ? 0.7 : 1 }}
+              >
+                {capturando ? 'Validando...' : 'Capturar e validar'}
+              </button>
+            )}
             <button
               type="button"
               onClick={pararCamera}

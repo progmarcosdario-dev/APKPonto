@@ -17,6 +17,7 @@ function App() {
   });
   const [completedEntries, setCompletedEntries] = useState([]);
   const [funcionario, setFuncionario] = useState(null);
+  const [trabalharFacial, setTrabalharFacial] = useState(true);
   const [modal, setModal] = useState({
     isOpen: false,
     title: '',
@@ -40,6 +41,9 @@ function App() {
       if (response.data && response.data.funcionario) {
         const codigo = response.data.funcionario.codigo;
         const possuiBiometria = response.data.funcionario.possui_biometria === true;
+        const facialAtivo = response.data.funcionario.trabalhar_facial !== false;
+
+        setTrabalharFacial(facialAtivo);
 
         setFuncionario({
           codigo: codigo,
@@ -47,7 +51,7 @@ function App() {
           possui_biometria: possuiBiometria
         });
 
-        if (!possuiBiometria) {
+        if (facialAtivo && !possuiBiometria) {
           setPasswordError('');
           setCurrentScreen('biometric-enrollment');
           return;
@@ -243,6 +247,7 @@ function App() {
           key="entry"
           employeeName={funcionario?.nome || EMPLOYEE_NAME}
           employeeCode={funcionario?.codigo}
+          trabalharFacial={trabalharFacial}
           onSave={handleSaveEntry}
           onBack={handleEntryBack}
           completedEntries={completedEntries}

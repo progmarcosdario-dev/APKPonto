@@ -39,11 +39,13 @@ async function validarSenha(req: Request, res: Response): Promise<any> {
     }
 
     const possuiBiometria = await possuiBiometriaCadastrada(funcionario.CODIGO);
+  const trabalharFacial = await firebirdDb.obterTrabalharFacial();
 
     logger.info('Autenticação bem-sucedida', {
       funcionario_codigo: funcionario.CODIGO,
       funcionario_nome: funcionario.NOME,
-      possui_biometria: possuiBiometria
+      possui_biometria: possuiBiometria,
+      trabalhar_facial: trabalharFacial
     });
 
     // Armazenar localmente no SQLite para modo offline
@@ -65,7 +67,8 @@ async function validarSenha(req: Request, res: Response): Promise<any> {
         codigo: funcionario.CODIGO,
         nome: funcionario.NOME,
         usuario_sistema: funcionario.USUARIO_SISTEMA,
-        possui_biometria: possuiBiometria
+        possui_biometria: possuiBiometria,
+        trabalhar_facial: trabalharFacial
       }
     });
   } catch (erro: any) {
