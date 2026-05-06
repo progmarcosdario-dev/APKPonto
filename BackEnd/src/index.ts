@@ -37,6 +37,10 @@ logger.info('Banco de dados SQLite inicializado');
 firebirdDb.inicializarConexao()
   .then(() => {
     logger.info('Firebird conectado com sucesso');
+    return firebirdDb.inicializarTabelasBiometria();
+  })
+  .then(() => {
+    logger.info('Tabelas de biometria verificadas no Firebird');
   })
   .catch((erro: any) => {
     logger.warn('Aviso: Firebird não disponível no momento', { erro: erro?.message || String(erro) });

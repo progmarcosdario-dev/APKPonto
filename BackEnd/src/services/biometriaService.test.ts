@@ -1,13 +1,10 @@
 import { criarHashBiometria } from '../services/biometriaService';
 
-jest.mock('../database/db', () => ({
-  db: {
-    get: jest.fn(),
-    run: jest.fn()
-  }
+jest.mock('../database/firebird', () => ({
+  executarQuery: jest.fn()
 }));
 
-import { db } from '../database/db';
+import { executarQuery } from '../database/firebird';
 
 jest.mock('../utils/logger');
 
@@ -43,9 +40,7 @@ describe('biometriaService', () => {
     const { verificarBiometria } = jest.requireActual('../services/biometriaService');
 
     it('deve retornar verificada=false quando nao ha template cadastrado', async () => {
-      (db.get as jest.Mock).mockImplementation((_sql: string, _params: any[], cb: Function) => {
-        cb(null, null);
-      });
+      (executarQuery as jest.Mock).mockResolvedValue([]);
 
       const resultado = await verificarBiometria(12345, 'face-base64');
       expect(resultado.verificada).toBe(false);
@@ -57,9 +52,7 @@ describe('biometriaService', () => {
       const { criarHashBiometria: calcularHash } = jest.requireActual('../services/biometriaService');
       const hashEsperado = calcularHash(base64);
 
-      (db.get as jest.Mock).mockImplementation((_sql: string, _params: any[], cb: Function) => {
-        cb(null, { hash_biometria: hashEsperado });
-      });
+      (executarQuery as jest.Mock).mockResolvedValue([{ HASH_BIOMETRIA: hashEsperado }]);
 
       const resultado = await verificarBiometria(12345, base64);
       expect(resultado.verificada).toBe(true);
@@ -67,9 +60,7 @@ describe('biometriaService', () => {
     });
 
     it('deve retornar verificada=false quando hash nao corresponde', async () => {
-      (db.get as jest.Mock).mockImplementation((_sql: string, _params: any[], cb: Function) => {
-        cb(null, { hash_biometria: 'hash-de-outro-funcionario' });
-      });
+      (executarQuery as jest.Mock).mockResolvedValue([{ HASH_BIOMETRIA: 'hash-de-outro-funcionario' }]);
 
       const resultado = await verificarBiometria(12345, 'face-errada');
       expect(resultado.verificada).toBe(false);
@@ -81,9 +72,7 @@ describe('biometriaService', () => {
     const { registrarTemplateBiometrico } = jest.requireActual('../services/biometriaService');
 
     it('deve persistir hash calculado corretamente', async () => {
-      (db.run as jest.Mock).mockImplementation((_sql: string, _params: any[], cb: Function) => {
-        cb(null);
-      });
+      (executarQuery as jest.Mock).mockResolvedValue([]);
 
       const resultado = await registrarTemplateBiometrico(12345, 'nova-face==');
       expect(typeof resultado.hash).toBe('string');

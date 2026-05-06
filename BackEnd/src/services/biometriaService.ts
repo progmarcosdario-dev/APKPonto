@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { db } from '../database/db';
+import { executarQuery } from '../database/firebird';
 
 interface ResultadoVerificacaoBiometrica {
   verificada: boolean;
@@ -26,41 +26,22 @@ function criarHashBiometria(base64: string): string {
 }
 
 function obterTemplate(funcionarioCodigo: number): Promise<string | null> {
-  return new Promise((resolve) => {
-    db.get(
-      `SELECT hash_biometria FROM biometrias_funcionario WHERE funcionario_codigo = ?`,
-      [funcionarioCodigo],
-      (erro: Error | null, row: any) => {
-        if (erro) {
-          resolve(null);
-          return;
-        }
-        resolve(row?.hash_biometria || null);
-      }
-    );
-  });
+  return executarQuery(
+    `SELECT HASH_BIOMETRIA FROM BIOMETRIAS_FUNCIONARIO WHERE FUNCIONARIO_CODIGO = ?`,
+    [funcionarioCodigo]
+  ).then((resultado: any[]) => resultado?.[0]?.HASH_BIOMETRIA ?? null)
+   .catch(() => null);
 }
 
 function registrarTemplateBiometrico(funcionarioCodigo: number, base64Face: string): Promise<{ hash: string }> {
-  return new Promise((resolve, reject) => {
-    const hash = criarHashBiometria(base64Face);
-
-    db.run(
-      `INSERT INTO biometrias_funcionario (funcionario_codigo, hash_biometria, atualizado_em)
-       VALUES (?, ?, CURRENT_TIMESTAMP)
-       ON CONFLICT(funcionario_codigo) DO UPDATE SET
-         hash_biometria = excluded.hash_biometria,
-         atualizado_em = CURRENT_TIMESTAMP`,
-      [funcionarioCodigo, hash],
-      (erro: Error | null) => {
-        if (erro) {
-          reject(erro);
-          return;
-        }
-        resolve({ hash });
-      }
-    );
-  });
+  const hash = criarHashBiometria(base64Face);
+  return executarQuery(
+    `UPDATE OR INSERT INTO BIOMETRIAS_FUNCIONARIO
+       (FUNCIONARIO_CODIGO, HASH_BIOMETRIA, ATUALIZADO_EM)
+     VALUES (?, ?, CURRENT_TIMESTAMP)
+     MATCHING (FUNCIONARIO_CODIGO)`,
+    [funcionarioCodigo, hash]
+  ).then(() => ({ hash }));
 }
 
 async function verificarBiometria(funcionarioCodigo: number, base64Face: string): Promise<ResultadoVerificacaoBiometrica> {
@@ -87,21 +68,12 @@ async function verificarBiometria(funcionarioCodigo: number, base64Face: string)
 }
 
 function auditarVerificacaoBiometrica(dados: RegistroBiometria): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.run(
-      `INSERT INTO ponto_biometria_auditoria
-        (funcionario_codigo, hash_biometria, score, origem, metodo)
-       VALUES (?, ?, ?, ?, ?)`,
-      [dados.funcionario_codigo, dados.hash_biometria, dados.score, dados.origem, dados.metodo],
-      (erro: Error | null) => {
-        if (erro) {
-          reject(erro);
-          return;
-        }
-        resolve();
-      }
-    );
-  });
+  return executarQuery(
+    `INSERT INTO PONTO_BIOMETRIA_AUDITORIA
+       (FUNCIONARIO_CODIGO, HASH_BIOMETRIA, SCORE, ORIGEM, METODO)
+     VALUES (?, ?, ?, ?, ?)`,
+    [dados.funcionario_codigo, dados.hash_biometria, dados.score, dados.origem, dados.metodo]
+  ).then(() => undefined);
 }
 
 export {
