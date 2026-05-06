@@ -32,6 +32,14 @@ async function cadastrarBiometria(req: Request, res: Response): Promise<any> {
       hash: resultado.hash
     });
   } catch (erro: any) {
+    if (erro?.code === 'ROSTO_NAO_DETECTADO_CADASTRO') {
+      return res.status(422).json({
+        sucesso: false,
+        mensagem: 'Nenhum rosto detectado. Centralize o rosto e tente novamente.',
+        erro: erro.code
+      });
+    }
+
     logger.error('Erro ao cadastrar biometria', { erro: erro.message });
     return res.status(500).json({
       sucesso: false,
@@ -67,6 +75,14 @@ async function validarBiometria(req: Request, res: Response): Promise<any> {
       biometria: resultado
     });
   } catch (erro: any) {
+    if (erro?.code === 'ERRO_EXTRACAO_DESCRIPTOR') {
+      return res.status(422).json({
+        sucesso: false,
+        mensagem: 'Nao foi possivel processar o rosto. Tente novamente com boa iluminacao.',
+        erro: erro.code
+      });
+    }
+
     logger.error('Erro ao validar biometria', { erro: erro.message });
     return res.status(500).json({
       sucesso: false,

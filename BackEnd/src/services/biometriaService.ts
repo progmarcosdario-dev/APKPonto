@@ -14,6 +14,16 @@ interface ResultadoVerificacaoBiometrica {
   motivo?: string;
 }
 
+class BiometriaError extends Error {
+  code: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this.code = code;
+    this.name = 'BiometriaError';
+  }
+}
+
 interface RegistroBiometria {
   funcionario_codigo: number;
   hash_biometria: string;
@@ -69,19 +79,19 @@ function obterRegistroBiometria(funcionarioCodigo: number): Promise<{ HASH_BIOME
 async function registrarTemplateBiometrico(funcionarioCodigo: number, base64Face: string): Promise<{ hash: string }> {
   const hash = criarHashBiometria(base64Face);
 
-  // Extrair descriptor facial (vetor de 128 floats)
-  let descriptorJson: string | null = null;
-  try {
-    const descriptor = await extrairDescriptor(base64Face);
-    if (descriptor) {
-      descriptorJson = serializarDescriptor(descriptor);
-      console.log(`[face-api] Descriptor extraído para funcionário ${funcionarioCodigo} ✅`);
-    } else {
-      console.warn(`[face-api] Nenhum rosto detectado na imagem de cadastro do funcionário ${funcionarioCodigo}`);
-    }
-  } catch (e) {
+  // Cadastro só é válido quando conseguimos extrair descriptor facial.
+  const descriptor = await extrairDescriptor(base64Face).catch((e) => {
     console.error('[face-api] Erro ao extrair descriptor no cadastro:', e);
+    throw new BiometriaError('ERRO_EXTRACAO_DESCRIPTOR', 'Erro ao processar rosto no cadastro');
+  });
+
+  if (!descriptor) {
+    console.warn(`[face-api] Nenhum rosto detectado na imagem de cadastro do funcionário ${funcionarioCodigo}`);
+    throw new BiometriaError('ROSTO_NAO_DETECTADO_CADASTRO', 'Nenhum rosto detectado. Centralize o rosto e tente novamente.');
   }
+
+  const descriptorJson = serializarDescriptor(descriptor);
+  console.log(`[face-api] Descriptor extraído para funcionário ${funcionarioCodigo} ✅`);
 
   await executarQuery(
     `UPDATE OR INSERT INTO BIOMETRIAS_FUNCIONARIO
@@ -104,39 +114,32 @@ async function verificarBiometria(funcionarioCodigo: number, base64Face: string)
     return { verificada: false, score: 0, hash: hashAtual, motivo: 'BIOMETRIA_NAO_CADASTRADA' };
   }
 
-  // Tentar verificação por descriptor (face-api) se disponível
-  if (registro.FACE_DESCRIPTOR) {
-    try {
-      const descriptorAtual = await extrairDescriptor(base64Face);
-      if (!descriptorAtual) {
-        return { verificada: false, score: 0, hash: hashAtual, motivo: 'ROSTO_NAO_DETECTADO' };
-      }
-
-      const descritorSalvo = deserializarDescriptor(
-        typeof registro.FACE_DESCRIPTOR === 'object'
-          ? await lerBlob(registro.FACE_DESCRIPTOR)
-          : registro.FACE_DESCRIPTOR
-      );
-
-      const { verificada, score } = calcularSimilaridade(descriptorAtual, descritorSalvo);
-      await atualizarStatusBiometria(funcionarioCodigo, true).catch(() => undefined);
-
-      console.log(`[face-api] Funcionário ${funcionarioCodigo} - score: ${score}, verificada: ${verificada}`);
-      return { verificada, score, hash: hashAtual, motivo: verificada ? undefined : 'FACE_NAO_CORRESPONDE' };
-    } catch (e) {
-      console.error('[face-api] Erro na verificação por descriptor, fallback para hash:', e);
-    }
+  // Registros antigos podem ter apenas hash (sem descriptor), e nesses casos a validação por hash gera falso negativo.
+  if (!registro.FACE_DESCRIPTOR) {
+    await atualizarStatusBiometria(funcionarioCodigo, false).catch(() => undefined);
+    return { verificada: false, score: 0, hash: hashAtual, motivo: 'BIOMETRIA_DESATUALIZADA' };
   }
 
-  // Fallback: comparação de hash (legado)
-  const verificada = registro.HASH_BIOMETRIA === hashAtual;
+  const descriptorAtual = await extrairDescriptor(base64Face).catch((e) => {
+    console.error('[face-api] Erro ao extrair descriptor na validação:', e);
+    throw new BiometriaError('ERRO_EXTRACAO_DESCRIPTOR', 'Erro ao processar rosto na validação');
+  });
+
+  if (!descriptorAtual) {
+    return { verificada: false, score: 0, hash: hashAtual, motivo: 'ROSTO_NAO_DETECTADO' };
+  }
+
+  const descritorSalvo = deserializarDescriptor(
+    typeof registro.FACE_DESCRIPTOR === 'object'
+      ? await lerBlob(registro.FACE_DESCRIPTOR)
+      : registro.FACE_DESCRIPTOR
+  );
+
+  const { verificada, score } = calcularSimilaridade(descriptorAtual, descritorSalvo);
   await atualizarStatusBiometria(funcionarioCodigo, true).catch(() => undefined);
-  return {
-    verificada,
-    score: verificada ? 0.99 : 0.1,
-    hash: hashAtual,
-    motivo: verificada ? undefined : 'FACE_NAO_CORRESPONDE'
-  };
+
+  console.log(`[face-api] Funcionário ${funcionarioCodigo} - score: ${score}, verificada: ${verificada}`);
+  return { verificada, score, hash: hashAtual, motivo: verificada ? undefined : 'FACE_NAO_CORRESPONDE' };
 }
 
 /** Lê blob do Firebird (pode vir como objeto Buffer/Stream) */

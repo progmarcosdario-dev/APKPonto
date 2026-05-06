@@ -106,7 +106,13 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
 
       const biometria = resposta?.data?.biometria;
       if (!biometria?.verificada) {
-        setStatus('Rosto nao validado. Tente novamente.');
+        if (biometria?.motivo === 'ROSTO_NAO_DETECTADO') {
+          setStatus('Rosto nao detectado. Melhore a iluminacao e tente novamente.');
+        } else if (biometria?.motivo === 'BIOMETRIA_DESATUALIZADA') {
+          setStatus('Biometria desatualizada. Faca o recadastro facial para continuar.');
+        } else {
+          setStatus('Rosto nao validado. Tente novamente.');
+        }
         onVerifiedChange(null);
         return;
       }
