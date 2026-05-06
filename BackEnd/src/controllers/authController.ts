@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../database/db';
 import * as firebirdDb from '../database/firebird';
+import { possuiBiometriaCadastrada } from '../services/biometriaService';
 import logger from '../utils/logger';
 
 // Validar senha do funcionário
@@ -37,7 +38,13 @@ async function validarSenha(req: Request, res: Response): Promise<any> {
       });
     }
 
-    logger.info('Autenticação bem-sucedida', { funcionario_codigo: funcionario.CODIGO, funcionario_nome: funcionario.NOME });
+    const possuiBiometria = await possuiBiometriaCadastrada(funcionario.CODIGO);
+
+    logger.info('Autenticação bem-sucedida', {
+      funcionario_codigo: funcionario.CODIGO,
+      funcionario_nome: funcionario.NOME,
+      possui_biometria: possuiBiometria
+    });
 
     // Armazenar localmente no SQLite para modo offline
     db.run(
@@ -57,7 +64,8 @@ async function validarSenha(req: Request, res: Response): Promise<any> {
       funcionario: {
         codigo: funcionario.CODIGO,
         nome: funcionario.NOME,
-        usuario_sistema: funcionario.USUARIO_SISTEMA
+        usuario_sistema: funcionario.USUARIO_SISTEMA,
+        possui_biometria: possuiBiometria
       }
     });
   } catch (erro: any) {

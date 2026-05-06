@@ -55,6 +55,14 @@ class APICliente {
     return { data: resposta.data, status: resposta.status };
   }
 
+  async cadastrarBiometria(codigoFuncionario: string, face_base64: string): Promise<RespostaAPI> {
+    const resposta: AxiosResponse = await instanciaAPI.post('/biometria/cadastrar', {
+      codigoFuncionario,
+      face_base64
+    });
+    return { data: resposta.data, status: resposta.status };
+  }
+
   async sincronizar(): Promise<RespostaAPI> {
     const resposta: AxiosResponse = await instanciaAPI.post('/sync/sincronizar');
     return { data: resposta.data, status: resposta.status };

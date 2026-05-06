@@ -17,9 +17,10 @@ interface Funcionario {
 }
 
 export default function TelaInicial() {
-  const [telaAtual, setTelaAtual] = useState<'bem_vindo' | 'senha' | 'entrada'>('bem_vindo');
+  const [telaAtual, setTelaAtual] = useState<'bem_vindo' | 'senha' | 'cadastro_biometria' | 'entrada'>('bem_vindo');
   const [senha, setSenha] = useState('');
   const [funcionario, setFuncionario] = useState<Funcionario | null>(null);
+  const [possuiBiometria, setPossuiBiometria] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erroSenha, setErroSenha] = useState('');
   const [tipoPendente, setTipoPendente] = useState<'entrada' | 'saida' | 'pausa' | 'retorno' | null>(null);
@@ -32,17 +33,40 @@ export default function TelaInicial() {
     setTelaAtual('senha');
   };
 
+  const garantirPermissaoCamera = async (): Promise<boolean> => {
+    const permission = cameraPermission?.granted
+      ? cameraPermission
+      : await requestCameraPermission();
+
+    if (!permission?.granted) {
+      Alert.alert('Permissao necessaria', 'A camera e obrigatoria para biometria facial.');
+      return false;
+    }
+
+    return true;
+  };
+
   const confirmarSenha = async () => {
     setCarregando(true);
     try {
       const resposta = await APICliente.autenticar(senha);
       if (resposta.data?.sucesso && resposta.data?.funcionario) {
+        const biometriaJaCadastrada = resposta.data.funcionario.possui_biometria === true;
+
         setFuncionario({
           codigo: String(resposta.data.funcionario.codigo),
           nome: resposta.data.funcionario.nome,
         });
+        setPossuiBiometria(biometriaJaCadastrada);
         setErroSenha('');
-        setTelaAtual('entrada');
+        if (biometriaJaCadastrada) {
+          setTelaAtual('entrada');
+        } else {
+          const permitido = await garantirPermissaoCamera();
+          if (permitido) {
+            setTelaAtual('cadastro_biometria');
+          }
+        }
       } else {
         setErroSenha('Senha incorreta. Tente novamente.');
       }
@@ -114,8 +138,37 @@ export default function TelaInicial() {
     }
   };
 
+  const capturarECadastrarBiometria = async () => {
+    if (!funcionario || !cameraRef.current) {
+      return;
+    }
+
+    setCarregando(true);
+    try {
+      const foto = await cameraRef.current.takePictureAsync({
+        base64: true,
+        quality: 0.7
+      });
+
+      if (!foto?.base64) {
+        throw new Error('Nao foi possivel capturar imagem facial.');
+      }
+
+      await APICliente.cadastrarBiometria(funcionario.codigo, foto.base64);
+      setPossuiBiometria(true);
+      Alert.alert('Cadastro concluido', 'Biometria cadastrada com sucesso.');
+      setTelaAtual('entrada');
+    } catch (erro) {
+      Alert.alert('Erro', 'Falha ao cadastrar biometria. Tente novamente.');
+      console.error('Erro ao cadastrar biometria:', erro);
+    } finally {
+      setCarregando(false);
+    }
+  };
+
   const sair = () => {
     setFuncionario(null);
+    setPossuiBiometria(false);
     setSenha('');
     setErroSenha('');
     setTipoPendente(null);
@@ -187,11 +240,50 @@ export default function TelaInicial() {
         </View>
       )}
 
+      {telaAtual === 'cadastro_biometria' && funcionario && (
+        <View style={styles.telaEntrada}>
+          <Text style={styles.titulo}>Cadastro Facial</Text>
+          <Text style={styles.nomeFuncionario}>{funcionario.nome}</Text>
+          <Text style={styles.codigo}>Codigo: {funcionario.codigo}</Text>
+
+          <View style={styles.cardBiometria}>
+            <Text style={styles.tituloBiometria}>Nenhuma biometria cadastrada. Capture sua foto facial para continuar.</Text>
+            <CameraView
+              ref={(ref) => {
+                cameraRef.current = ref;
+              }}
+              style={styles.camera}
+              facing="front"
+            />
+            <View style={styles.acoesBiometria}>
+              <TouchableOpacity
+                style={styles.botaoBiometriaConfirmar}
+                onPress={capturarECadastrarBiometria}
+                disabled={carregando}
+              >
+                <Text style={styles.textoBotao}>{carregando ? 'Cadastrando...' : 'Capturar e cadastrar'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.botaoSecundario}
+            onPress={sair}
+            disabled={carregando}
+          >
+            <Text style={styles.textoSecundario}>Cancelar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {telaAtual === 'entrada' && funcionario && (
         <View style={styles.telaEntrada}>
           <Text style={styles.titulo}>Bem-vindo!</Text>
           <Text style={styles.nomeFuncionario}>{funcionario.nome}</Text>
           <Text style={styles.codigo}>Código: {funcionario.codigo}</Text>
+          {!possuiBiometria && (
+            <Text style={styles.erro}>Biometria ainda não cadastrada.</Text>
+          )}
 
           {tipoPendente && (
             <View style={styles.cardBiometria}>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import WelcomeScreen from './components/WelcomeScreen.jsx';
 import PasswordScreen from './components/PasswordScreen.jsx';
+import BiometricEnrollmentScreen from './components/BiometricEnrollmentScreen.jsx';
 import TimeEntryScreen from './components/TimeEntryScreen.jsx';
 import ConfirmationScreen from './components/ConfirmationScreen.jsx';
 import Modal from './components/Modal.jsx';
@@ -38,11 +39,19 @@ function App() {
       const response = await API.post('/auth/login', { senha: password });
       if (response.data && response.data.funcionario) {
         const codigo = response.data.funcionario.codigo;
+        const possuiBiometria = response.data.funcionario.possui_biometria === true;
 
         setFuncionario({
           codigo: codigo,
-          nome: response.data.funcionario.nome
+          nome: response.data.funcionario.nome,
+          possui_biometria: possuiBiometria
         });
+
+        if (!possuiBiometria) {
+          setPasswordError('');
+          setCurrentScreen('biometric-enrollment');
+          return;
+        }
 
         // Buscar histórico de hoje
         const hoje = new Date().toISOString().split('T')[0];
@@ -237,6 +246,22 @@ function App() {
           onSave={handleSaveEntry}
           onBack={handleEntryBack}
           completedEntries={completedEntries}
+        />
+      )}
+
+      {currentScreen === 'biometric-enrollment' && (
+        <BiometricEnrollmentScreen
+          employeeName={funcionario?.nome || EMPLOYEE_NAME}
+          employeeCode={funcionario?.codigo}
+          onEnrolled={() => {
+            setFuncionario((prev) => (prev ? { ...prev, possui_biometria: true } : prev));
+            setCurrentScreen('entry');
+          }}
+          onCancel={() => {
+            setCurrentScreen('welcome');
+            setFuncionario(null);
+            setCompletedEntries([]);
+          }}
         />
       )}
 

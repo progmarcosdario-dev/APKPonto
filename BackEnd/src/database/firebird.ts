@@ -449,6 +449,18 @@ async function inicializarTabelasBiometria(): Promise<void> {
     console.log('Tabela BIOMETRIAS_FUNCIONARIO criada no Firebird ✅');
   }
 
+  const statusExiste = await tabelaExiste('BIOMETRIA_STATUS_FUNCIONARIO');
+  if (!statusExiste) {
+    await executarQuery(`
+      CREATE TABLE BIOMETRIA_STATUS_FUNCIONARIO (
+        FUNCIONARIO_CODIGO INTEGER NOT NULL PRIMARY KEY,
+        POSSUI_BIOMETRIA SMALLINT DEFAULT 0 NOT NULL,
+        ATUALIZADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `, []);
+    console.log('Tabela BIOMETRIA_STATUS_FUNCIONARIO criada no Firebird ✅');
+  }
+
   const auditoriaExiste = await tabelaExiste('PONTO_BIOMETRIA_AUDITORIA');
   if (!auditoriaExiste) {
     await executarQuery(`
