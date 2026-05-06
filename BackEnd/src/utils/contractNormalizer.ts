@@ -93,7 +93,7 @@ function normalizarRegistroPontoPayload(payload: any): RegistroPontoNormalizado 
     erros.push('Verificação biométrica obrigatória');
   }
 
-  if (biometria.score < 0.7) {
+  if (biometria.verificada && biometria.score < 0) {
     erros.push('Score biométrico insuficiente');
   }
 
