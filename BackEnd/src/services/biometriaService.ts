@@ -129,11 +129,11 @@ async function verificarBiometria(funcionarioCodigo: number, base64Face: string)
     return { verificada: false, score: 0, hash: hashAtual, motivo: 'ROSTO_NAO_DETECTADO' };
   }
 
-  const descritorSalvo = deserializarDescriptor(
-    typeof registro.FACE_DESCRIPTOR === 'object'
-      ? await lerBlob(registro.FACE_DESCRIPTOR)
-      : registro.FACE_DESCRIPTOR
-  );
+  const descritorSalvoRaw = typeof registro.FACE_DESCRIPTOR === 'string'
+    ? registro.FACE_DESCRIPTOR
+    : await lerBlob(registro.FACE_DESCRIPTOR);
+
+  const descritorSalvo = deserializarDescriptor(descritorSalvoRaw);
 
   const { verificada, score } = calcularSimilaridade(descriptorAtual, descritorSalvo);
   await atualizarStatusBiometria(funcionarioCodigo, true).catch(() => undefined);
