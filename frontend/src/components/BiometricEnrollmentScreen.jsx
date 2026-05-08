@@ -160,7 +160,7 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
               autoPlay
               playsInline
               muted
-              style={{ width: '220px', height: '300px', objectFit: 'cover', borderRadius: '0.75rem', border: '1px solid #d1d5db' }}
+              style={{ width: '220px', height: '300px', objectFit: 'cover', borderRadius: '50%', border: '3px solid #d1d5db' }}
             />
           </div>
         )}

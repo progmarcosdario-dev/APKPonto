@@ -262,7 +262,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
             autoPlay
             playsInline
             muted
-            style={{ width: '160px', height: '220px', objectFit: 'cover', borderRadius: '0.75rem', border: '1px solid #ddd' }}
+            style={{ width: '160px', height: '220px', objectFit: 'cover', borderRadius: '50%', border: '3px solid #ddd' }}
           />
         </div>
       )}
