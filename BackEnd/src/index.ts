@@ -35,13 +35,9 @@ initialize();
 logger.info('Banco de dados SQLite inicializado');
 
 // Inicializar conexão com Firebird
-firebirdDb.inicializarConexao()
+firebirdDb.inicializarTabelasBiometria()
   .then(() => {
-    logger.info('Firebird conectado com sucesso');
-    return firebirdDb.inicializarTabelasBiometria();
-  })
-  .then(() => {
-    logger.info('Tabelas de biometria verificadas no Firebird');
+    logger.info('Firebird conectado e tabelas de biometria verificadas');
     return inicializarModelos();
   })
   .then(() => {
