@@ -600,6 +600,7 @@ export {
   inicializarTabelasBiometria,
   gravarLogPonto,
   obterTrabalharFacial,
+  executarQuery,
   firebirdConfig,
   // Types
   type Funcionario,
