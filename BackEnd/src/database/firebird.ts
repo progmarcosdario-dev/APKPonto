@@ -597,6 +597,7 @@ export {
   sincronizarRegistrosPendentes,
   fecharConexao,
   invalidarCache,
+  inicializarConexao,
   inicializarTabelasBiometria,
   gravarLogPonto,
   obterTrabalharFacial,
