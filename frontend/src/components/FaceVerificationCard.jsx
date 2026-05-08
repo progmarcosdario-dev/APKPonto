@@ -16,6 +16,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   const [dispositivos, setDispositivos] = useState([]);
   const [deviceIdSelecionado, setDeviceIdSelecionado] = useState('');
   const [contagemRegressiva, setContagemRegressiva] = useState(null);
+  const [validado, setValidado] = useState(false);
 
   const carregarDispositivos = async () => {
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -197,6 +198,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
         metodo: 'camera'
       });
       pararCamera();
+      setValidado(true);
     } catch (validacaoErro) {
       setErro(validacaoErro?.message || 'Falha ao validar biometria');
       setStatus(`Tentativa ${tentativaAtual}: erro na validação. Nova tentativa em instantes.`);
@@ -216,6 +218,15 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       }
     };
   }, []);
+
+  if (validado) {
+    return (
+      <div style={{ width: '100%', backgroundColor: 'rgba(15, 124, 62, 0.12)', borderRadius: '1rem', padding: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.6rem', border: '1px solid rgba(15, 124, 62, 0.3)' }}>
+        <span style={{ fontSize: '1.5rem' }}>✅</span>
+        <p style={{ margin: 0, color: '#0F7C3E', fontWeight: 700, fontSize: '1rem' }}>Facial validado com sucesso</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.75)', borderRadius: '1rem', padding: '0.75rem' }}>

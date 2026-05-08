@@ -154,13 +154,15 @@ export default function BiometricEnrollmentScreen({ employeeName, employeeCode, 
         )}
 
         {cameraAtiva && (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            style={{ width: '100%', maxHeight: '240px', objectFit: 'cover', borderRadius: '0.75rem', border: '1px solid #d1d5db', marginBottom: '0.8rem' }}
-          />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.8rem' }}>
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              style={{ width: '220px', height: '300px', objectFit: 'cover', borderRadius: '0.75rem', border: '1px solid #d1d5db' }}
+            />
+          </div>
         )}
 
         <canvas ref={canvasRef} style={{ display: 'none' }} />

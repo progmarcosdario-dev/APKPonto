@@ -103,10 +103,12 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
-        height: '100vh',
-        padding: '1rem 2rem 0.5rem 2rem',
+        minHeight: '100vh',
+        height: 'auto',
+        padding: '1rem 2rem 2rem 2rem',
         backgroundColor: '#EBEBEB',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch'
       }}
     >
       {/* Logo */}
