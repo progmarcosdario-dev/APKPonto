@@ -93,14 +93,15 @@ async function registrarTemplateBiometrico(funcionarioCodigo: number, base64Face
   }
 
   const descriptorJson = serializarDescriptor(descriptor);
+  const fotoBuffer = Buffer.from(normalizarBase64(base64Face), 'base64');
   console.log(`[face-api] Descriptor extraído para funcionário ${funcionarioCodigo} ✅`);
 
   await executarQuery(
     `UPDATE OR INSERT INTO BIOMETRIAS_FUNCIONARIO
-       (FUNCIONARIO_CODIGO, HASH_BIOMETRIA, FACE_DESCRIPTOR, ATUALIZADO_EM)
-     VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+       (FUNCIONARIO_CODIGO, HASH_BIOMETRIA, FACE_DESCRIPTOR, FOTO, ATUALIZADO_EM)
+     VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
      MATCHING (FUNCIONARIO_CODIGO)`,
-    [funcionarioCodigo, hash, descriptorJson]
+    [funcionarioCodigo, hash, descriptorJson, fotoBuffer]
   );
 
   await atualizarStatusBiometria(funcionarioCodigo, true);

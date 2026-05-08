@@ -480,6 +480,7 @@ async function inicializarTabelasBiometria(): Promise<void> {
         FUNCIONARIO_CODIGO INTEGER NOT NULL PRIMARY KEY,
         HASH_BIOMETRIA VARCHAR(64) NOT NULL,
         FACE_DESCRIPTOR BLOB SUB_TYPE TEXT,
+        FOTO BLOB SUB_TYPE 0,
         ATUALIZADO_EM TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `, []);
@@ -490,6 +491,11 @@ async function inicializarTabelasBiometria(): Promise<void> {
     if (!descriptorExiste) {
       await executarQuery(`ALTER TABLE BIOMETRIAS_FUNCIONARIO ADD FACE_DESCRIPTOR BLOB SUB_TYPE TEXT`, []);
       console.log('Coluna FACE_DESCRIPTOR adicionada em BIOMETRIAS_FUNCIONARIO ✅');
+    }
+    const fotoExiste = await colunaExiste('BIOMETRIAS_FUNCIONARIO', 'FOTO');
+    if (!fotoExiste) {
+      await executarQuery(`ALTER TABLE BIOMETRIAS_FUNCIONARIO ADD FOTO BLOB SUB_TYPE 0`, []);
+      console.log('Coluna FOTO adicionada em BIOMETRIAS_FUNCIONARIO ✅');
     }
   }
 
