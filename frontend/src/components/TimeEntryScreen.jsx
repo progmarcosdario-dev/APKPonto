@@ -284,39 +284,49 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
             <FaceVerificationCard
               funcionarioCodigo={employeeCode}
               onVerifiedChange={setBiometriaValidada}
+              onAutoConfirm={(dadosBiometria) => {
+                if (autoSelectedType && !isLoading) {
+                  onSave(autoSelectedType, dadosBiometria).catch((error) => {
+                    setAlertMessage(error.message || 'Erro ao registrar ponto');
+                    setAlertType('error');
+                  });
+                }
+              }}
               autoStart
               autoCapture
             />
           )}
 
-          {/* Botão Confirmar integrado logo abaixo do tipo */}
+          {/* Botão Confirmar — oculto quando facial está ativo (auto-confirma) */}
+          {!trabalharFacial && (
           <motion.button
             onClick={handleConfirm}
-            disabled={!autoSelectedType || isLoading || (trabalharFacial && !biometriaValidada?.verificada)}
+            disabled={!autoSelectedType || isLoading}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            whileHover={(!isLoading && !(trabalharFacial && !biometriaValidada?.verificada)) ? { scale: 1.02 } : {}}
-            whileTap={(!isLoading && !(trabalharFacial && !biometriaValidada?.verificada)) ? { scale: 0.98 } : {}}
+            whileHover={!isLoading ? { scale: 1.02 } : {}}
+            whileTap={!isLoading ? { scale: 0.98 } : {}}
             style={{
               width: '100%',
               height: '4rem',
               paddingLeft: '1.5rem',
               paddingRight: '1.5rem',
-              backgroundColor: (trabalharFacial && !biometriaValidada?.verificada) ? 'rgba(15, 124, 62, 0.35)' : '#0F7C3E',
+              backgroundColor: '#0F7C3E',
               color: 'white',
               fontWeight: 700,
               borderRadius: '0.75rem',
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
               border: 'none',
-              cursor: (!isLoading && !(trabalharFacial && !biometriaValidada?.verificada)) ? 'pointer' : 'not-allowed',
+              cursor: !isLoading ? 'pointer' : 'not-allowed',
               fontSize: '1.95rem',
               transition: 'all 0.2s',
-              opacity: (isLoading || (trabalharFacial && !biometriaValidada?.verificada)) ? 0.6 : 1,
+              opacity: isLoading ? 0.6 : 1,
               marginTop: '0.3rem'
             }}
           >
-            {isLoading ? '⏳ Registrando...' : (trabalharFacial && !biometriaValidada?.verificada) ? '🔒 Aguardando facial...' : 'Confirmar'}
+            {isLoading ? '⏳ Registrando...' : 'Confirmar'}
           </motion.button>
+          )}
 
           {/* Botão Cancelar logo abaixo do Confirmar */}
           <motion.button

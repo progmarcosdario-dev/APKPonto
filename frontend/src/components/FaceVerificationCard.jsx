@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import API from '../api/api';
 
-export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChange, autoStart = false, autoCapture = false }) {
+export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChange, onAutoConfirm, autoStart = false, autoCapture = false }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -190,15 +190,19 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
 
       validadoRef.current = true;
       setStatus(`Rosto validado com sucesso na tentativa ${tentativaAtual}.`);
-      onVerifiedChange({
+      const dadosBiometria = {
         verificada: true,
         score: biometria.score,
         hash: biometria.hash,
         origem: 'web',
         metodo: 'camera'
-      });
+      };
+      onVerifiedChange(dadosBiometria);
       pararCamera();
       setValidado(true);
+      if (onAutoConfirm) {
+        setTimeout(() => onAutoConfirm(dadosBiometria), 300);
+      }
     } catch (validacaoErro) {
       setErro(validacaoErro?.message || 'Falha ao validar biometria');
       setStatus(`Tentativa ${tentativaAtual}: erro na validação. Nova tentativa em instantes.`);
@@ -252,13 +256,15 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       )}
 
       {cameraAtiva && (
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          style={{ width: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '0.75rem', border: '1px solid #ddd', marginBottom: '0.5rem' }}
-        />
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            style={{ width: '160px', height: '220px', objectFit: 'cover', borderRadius: '0.75rem', border: '1px solid #ddd' }}
+          />
+        </div>
       )}
 
       <canvas ref={canvasRef} style={{ display: 'none' }} />
