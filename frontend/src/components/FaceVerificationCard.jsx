@@ -8,6 +8,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   const countdownRef = useRef(null);
   const tentativaRef = useRef(0);
   const validadoRef = useRef(false);
+  const onAutoConfirmRef = useRef(onAutoConfirm);
 
   const [cameraAtiva, setCameraAtiva] = useState(false);
   const [capturando, setCapturando] = useState(false);
@@ -17,6 +18,11 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   const [deviceIdSelecionado, setDeviceIdSelecionado] = useState('');
   const [contagemRegressiva, setContagemRegressiva] = useState(null);
   const [validado, setValidado] = useState(false);
+
+  // Mantém sempre a versão mais recente do callback, evitando stale closures
+  useEffect(() => {
+    onAutoConfirmRef.current = onAutoConfirm;
+  }, [onAutoConfirm]);
 
   const carregarDispositivos = async () => {
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -200,8 +206,8 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       onVerifiedChange(dadosBiometria);
       pararCamera();
       setValidado(true);
-      if (onAutoConfirm) {
-        setTimeout(() => onAutoConfirm(dadosBiometria), 300);
+      if (onAutoConfirmRef.current) {
+        setTimeout(() => onAutoConfirmRef.current(dadosBiometria), 300);
       }
     } catch (validacaoErro) {
       setErro(validacaoErro?.message || 'Falha ao validar biometria');
