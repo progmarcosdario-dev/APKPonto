@@ -294,7 +294,7 @@ export default function WelcomeScreen({ onStart }) {
         marginTop: '4rem'
       }}>
         <p style={{ color: '#6A6A6A', fontSize: '0.75rem' }}>
-          Versão 1.0 — Desenvolvido por <a href="https://www.erikadario.design/" style={{ color: '#E30613', textDecoration: 'none' }}>https://www.erikadario.design/</a>
+          Versão 2.0 — Desenvolvido por <a href="https://www.erikadario.design/" style={{ color: '#E30613', textDecoration: 'none' }}>https://www.erikadario.design/</a>
         </p>
         <p style={{ color: '#7A7A7A', fontSize: '0.75rem' }}>
           © 2025 Impacto Locações de Equipamentos
