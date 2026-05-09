@@ -78,7 +78,7 @@ const WelcomeScreen: FC<WelcomeScreenProps> = ({ onStart }) => {
       {/* Footer com Versão */}
       <div className="welcome-footer">
         <p className="welcome-version">Versão 1.0 — acesso restrito</p>
-        <p className="welcome-copyright">© 2025 Impacto Locações de Equipamentos</p>
+        <p className="welcome-copyright">© 2026 Impacto Locações de Equipamentos</p>
       </div>
     </div>
   );

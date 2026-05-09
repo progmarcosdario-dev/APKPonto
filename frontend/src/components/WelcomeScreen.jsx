@@ -297,7 +297,7 @@ export default function WelcomeScreen({ onStart }) {
           Versão 2.0 — Desenvolvido por <a href="https://www.erikadario.design/" style={{ color: '#E30613', textDecoration: 'none' }}>https://www.erikadario.design/</a>
         </p>
         <p style={{ color: '#7A7A7A', fontSize: '0.75rem' }}>
-          © 2025 Impacto Locações de Equipamentos
+          © 2026 Impacto Locações de Equipamentos
         </p>
       </div>
     </motion.div>
