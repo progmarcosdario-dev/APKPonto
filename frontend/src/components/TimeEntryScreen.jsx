@@ -321,6 +321,33 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
             />
           )}
 
+          {/* Botão Voltar abaixo do facial */}
+          {trabalharFacial && (
+            <motion.button
+              onClick={onBack}
+              disabled={isLoading}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                color: '#5A5A5A',
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                fontSize: '1.1rem',
+                fontWeight: 500,
+                opacity: isLoading ? 0.5 : 1,
+                padding: '0.2rem 0.5rem',
+                alignSelf: 'flex-start'
+              }}
+            >
+              <ArrowLeft size={18} strokeWidth={2} />
+              <span>Voltar</span>
+            </motion.button>
+          )}
+
           {/* Botão Confirmar — oculto quando facial está ativo (auto-confirma) */}
           {!trabalharFacial && (
           <motion.button

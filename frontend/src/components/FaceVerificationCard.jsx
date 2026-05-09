@@ -311,7 +311,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
             <button
               type="button"
               onClick={pararCamera}
-              style={{ border: '1px solid #ddd', borderRadius: '0.5rem', backgroundColor: '#fff', color: '#333', padding: '0.65rem 0.8rem', fontWeight: 600 }}
+              style={{ border: '1px solid #ddd', borderRadius: '0.5rem', backgroundColor: '#fff', color: '#333', padding: '0.65rem 0.8rem', fontWeight: 600, display: 'none' }}
             >
               Fechar
             </button>
