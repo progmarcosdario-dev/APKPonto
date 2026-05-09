@@ -47,6 +47,7 @@ interface DadosPonto {
   data: string;
   hora: string;
   observacao?: string | null;
+  foto_base64?: string | null;
 }
 
 interface ResultadoPonto {
@@ -253,7 +254,7 @@ async function obterTiposMarcacao(): Promise<TipoMarcacao[]> {
  */
 async function registrarPontoFirebird(dados: DadosPonto): Promise<ResultadoPonto> {
   try {
-    const { funcionario, tipo_marcacao, data, hora, observacao } = dados;
+    const { funcionario, tipo_marcacao, data, hora, observacao, foto_base64 } = dados;
 
     // Buscar próximo código disponível
     const ultimoSql = 'SELECT MAX(CODIGO) as CODIGO FROM PONTO_FUNCIONARIO';
@@ -267,14 +268,15 @@ async function registrarPontoFirebird(dados: DadosPonto): Promise<ResultadoPonto
     const dataObj = new Date(data + 'T00:00:00');
     // Observação: se vazia, enviar null ao invés de espaço
     const obsProcessada = observacao && observacao.trim() ? observacao : null;
+    const fotoProcessada = foto_base64 && foto_base64.trim() ? foto_base64 : null;
 
     const sql = `
       INSERT INTO PONTO_FUNCIONARIO
-        (CODIGO, FUNCIONARIO, DATA, HORA, TIPO_MARCACAO, OBSERVACAO, HORA_SISTEMA)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+        (CODIGO, FUNCIONARIO, DATA, HORA, TIPO_MARCACAO, OBSERVACAO, HORA_SISTEMA, FOTO)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    console.log(`[Firebird INSERT] Código: ${proximoCodigo}, Func: ${funcionario}, Data: ${dataObj.toLocaleDateString('pt-BR')}, Hora: ${hora}, Tipo: ${tipo_marcacao}, Obs: ${obsProcessada === null ? 'NULL' : `"${obsProcessada}"`}`);
+    console.log(`[Firebird INSERT] Código: ${proximoCodigo}, Func: ${funcionario}, Data: ${dataObj.toLocaleDateString('pt-BR')}, Hora: ${hora}, Tipo: ${tipo_marcacao}, Obs: ${obsProcessada === null ? 'NULL' : `"${obsProcessada}"`}, Foto: ${fotoProcessada ? 'SIM' : 'NAO'}`);
 
     await executarQuery(sql, [
       proximoCodigo,
@@ -283,7 +285,8 @@ async function registrarPontoFirebird(dados: DadosPonto): Promise<ResultadoPonto
       hora,
       tipo_marcacao,
       obsProcessada,
-      horaSistema
+      horaSistema,
+      fotoProcessada
     ]);
 
     console.log(`✅ Ponto registrado no Firebird com código: ${proximoCodigo}`);
@@ -549,6 +552,17 @@ async function inicializarTabelasBiometria(): Promise<void> {
       )
     `, []);
     console.log('Tabela LOG_PONTO criada no Firebird ✅');
+  }
+
+  // Migração: adicionar coluna FOTO em PONTO_FUNCIONARIO se não existir
+  try {
+    const fotoNoPontoExiste = await colunaExiste('PONTO_FUNCIONARIO', 'FOTO');
+    if (!fotoNoPontoExiste) {
+      await executarQuery(`ALTER TABLE PONTO_FUNCIONARIO ADD FOTO BLOB SUB_TYPE TEXT`, []);
+      console.log('Coluna FOTO adicionada em PONTO_FUNCIONARIO ✅');
+    }
+  } catch (e) {
+    console.warn('Falha ao adicionar coluna FOTO em PONTO_FUNCIONARIO:', e);
   }
 
   // Limpeza automática: remover logs com mais de 30 dias

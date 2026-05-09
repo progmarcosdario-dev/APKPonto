@@ -4,6 +4,7 @@ interface DadosBiometriaNormalizados {
   hash: string;
   origem: 'web' | 'mobile' | 'desconhecida';
   metodo: 'camera' | 'upload' | 'manual' | 'desconhecido';
+  face_base64?: string;
 }
 
 interface RegistroPontoNormalizado {
@@ -91,7 +92,8 @@ function normalizarRegistroPontoPayload(payload: any, options: NormalizarRegistr
     score: Number.isFinite(score) ? score : 0,
     hash: typeof biometriaRaw?.hash === 'string' ? biometriaRaw.hash : '',
     origem: origemRaw === 'web' || origemRaw === 'mobile' ? origemRaw : 'desconhecida',
-    metodo: metodoRaw === 'camera' || metodoRaw === 'upload' || metodoRaw === 'manual' ? metodoRaw : 'desconhecido'
+    metodo: metodoRaw === 'camera' || metodoRaw === 'upload' || metodoRaw === 'manual' ? metodoRaw : 'desconhecido',
+    face_base64: typeof biometriaRaw?.face_base64 === 'string' ? biometriaRaw.face_base64 : undefined
   };
 
   if (exigirBiometria && !biometria.verificada) {

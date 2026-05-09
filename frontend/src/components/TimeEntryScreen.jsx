@@ -245,7 +245,31 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
             width: '100%'
           }}
         >
-          <p style={{ color: '#5A5A5A', fontSize: '1.5rem', fontWeight: 500, margin: 0 }}>Tipo de ponto</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <p style={{ color: '#5A5A5A', fontSize: '1.5rem', fontWeight: 500, margin: 0 }}>Tipo de ponto</p>
+            <motion.button
+              onClick={onBack}
+              disabled={isLoading}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                color: '#5A5A5A',
+                backgroundColor: 'transparent',
+                border: 'none',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                fontSize: '1.1rem',
+                fontWeight: 500,
+                opacity: isLoading ? 0.5 : 1,
+                padding: '0.2rem 0.5rem'
+              }}
+            >
+              <ArrowLeft size={18} strokeWidth={2} />
+              <span>Voltar</span>
+            </motion.button>
+          </div>
 
           {autoSelectedType && (
             <div style={{
@@ -328,33 +352,7 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
           </motion.button>
           )}
 
-          {/* Botão Cancelar logo abaixo do Confirmar */}
-          <motion.button
-            onClick={onBack}
-            disabled={isLoading}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            style={{
-              alignSelf: 'flex-start',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              color: '#5A5A5A',
-              backgroundColor: 'transparent',
-              border: 'none',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              fontSize: '1.43rem',
-              fontWeight: 500,
-              transition: 'color 0.2s',
-              opacity: isLoading ? 0.5 : 1,
-              marginTop: '0.2rem'
-            }}
-            onMouseEnter={(e) => !isLoading && (e.currentTarget.style.color = '#2A2A2A')}
-            onMouseLeave={(e) => !isLoading && (e.currentTarget.style.color = '#5A5A5A')}
-          >
-            <ArrowLeft size={21} strokeWidth={2} />
-            <span>Cancelar</span>
-          </motion.button>
+
         </motion.div>
       </div>
     </motion.div>

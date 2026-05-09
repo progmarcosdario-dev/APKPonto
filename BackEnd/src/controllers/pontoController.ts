@@ -322,7 +322,8 @@ async function registrarPonto(req: Request, res: Response): Promise<any> {
         tipo_marcacao: tipoMarcacao,
         data: dataRegistro,
         hora: horaRegistro,
-        observacao
+        observacao,
+        foto_base64: biometria.face_base64 ?? null
       });
 
       console.log(`[pontoController] Ponto registrado no Firebird com sucesso. Código: ${resultado.codigo}`);

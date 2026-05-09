@@ -9,6 +9,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   const tentativaRef = useRef(0);
   const validadoRef = useRef(false);
   const onAutoConfirmRef = useRef(onAutoConfirm);
+  const cameraAtivaRef = useRef(false);
 
   const [cameraAtiva, setCameraAtiva] = useState(false);
   const [capturando, setCapturando] = useState(false);
@@ -54,7 +55,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
   }, [autoStart, cameraAtiva]);
 
   const iniciarContagemCaptura = (forcado = false) => {
-    if (!autoCapture || (!cameraAtiva && !forcado) || validadoRef.current) {
+    if (!autoCapture || (!cameraAtivaRef.current && !forcado) || validadoRef.current) {
       return;
     }
 
@@ -92,6 +93,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       const stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
       streamRef.current = stream;
       setCameraAtiva(true);
+      cameraAtivaRef.current = true;
       await carregarDispositivos();
       setStatus('Camera ativa. Enquadre o rosto e confirme.');
       if (autoCapture) {
@@ -139,6 +141,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       streamRef.current = null;
     }
     setCameraAtiva(false);
+    cameraAtivaRef.current = false;
   };
 
   const capturarEValidar = async () => {
@@ -181,13 +184,13 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
         } else if (biometria?.motivo === 'ROSTO_NAO_DETECTADO') {
           setStatus(`Tentativa ${tentativaAtual}: rosto nao detectado. Nova tentativa em instantes.`);
           onVerifiedChange(null);
-          if (autoCapture && cameraAtiva) {
+          if (autoCapture && cameraAtivaRef.current) {
             setTimeout(() => iniciarContagemCaptura(), 2000);
           }
         } else {
           setStatus(`Tentativa ${tentativaAtual}: rosto nao validado. Nova tentativa em instantes.`);
           onVerifiedChange(null);
-          if (autoCapture && cameraAtiva) {
+          if (autoCapture && cameraAtivaRef.current) {
             setTimeout(() => iniciarContagemCaptura(), 2000);
           }
         }
@@ -201,7 +204,8 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
         score: biometria.score,
         hash: biometria.hash,
         origem: 'web',
-        metodo: 'camera'
+        metodo: 'camera',
+        face_base64: base64
       };
       onVerifiedChange(dadosBiometria);
       pararCamera();
@@ -213,7 +217,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
       setErro(validacaoErro?.message || 'Falha ao validar biometria');
       setStatus(`Tentativa ${tentativaAtual}: erro na validação. Nova tentativa em instantes.`);
       onVerifiedChange(null);
-      if (autoCapture && cameraAtiva) {
+      if (autoCapture && cameraAtivaRef.current) {
         setTimeout(() => iniciarContagemCaptura(), 2000);
       }
     } finally {
