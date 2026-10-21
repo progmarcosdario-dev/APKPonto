@@ -3,6 +3,14 @@ import { Clock, User, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/logo.png';
 import FaceVerificationCard from './FaceVerificationCard.jsx';
+import API from '../api/api';
+
+const TIPOS_MARCACAO_PADRAO = {
+  1: { label: 'Início expediente', icon: '🟢', color: 'success' },
+  2: { label: 'Saída intervalo', icon: '🟡', color: 'warning' },
+  3: { label: 'Retorno intervalo', icon: '🟡', color: 'warning' },
+  4: { label: 'Final expediente', icon: '🔴', color: 'error' }
+};
 
 export default function TimeEntryScreen({ employeeName, employeeCode, trabalharFacial = true, onSave, onBack, completedEntries }) {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -12,14 +20,7 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
   const [autoSelectedType, setAutoSelectedType] = useState(null);
   const [typeLabel, setTypeLabel] = useState('');
   const [biometriaValidada, setBiometriaValidada] = useState(null);
-
-  // Mapa de tipos para labels
-  const tipoMarcacaoMap = {
-    1: { label: 'Início expediente', icon: '🟢', color: 'success' },
-    2: { label: 'Saída intervalo', icon: '🟡', color: 'warning' },
-    3: { label: 'Retorno intervalo', icon: '🟡', color: 'warning' },
-    4: { label: 'Final expediente', icon: '🔴', color: 'error' }
-  };
+  const [tipoMarcacaoMap, setTipoMarcacaoMap] = useState(TIPOS_MARCACAO_PADRAO);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -27,6 +28,43 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarTiposMarcacao() {
+      try {
+        const resposta = await API.get('/ponto/tipos');
+        const tipos = resposta.data?.tipos || [];
+
+        const tiposParametrizados = tipos.reduce((acc, tipo) => {
+          const codigo = Number(tipo.CODIGO ?? tipo.codigo ?? tipo.ID ?? tipo.id);
+          const descricao = tipo.DESCRICAO ?? tipo.descricao;
+
+          if (codigo && descricao) {
+            acc[codigo] = {
+              ...(TIPOS_MARCACAO_PADRAO[codigo] || { icon: '⚪', color: 'default' }),
+              label: descricao
+            };
+          }
+
+          return acc;
+        }, { ...TIPOS_MARCACAO_PADRAO });
+
+        if (ativo) {
+          setTipoMarcacaoMap(tiposParametrizados);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar tipos de marcação:', error);
+      }
+    }
+
+    carregarTiposMarcacao();
+
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   // Determinar tipo auto-selecionado usando APENAS lógica local (sem API)
@@ -49,7 +87,7 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
 
     setAutoSelectedType(proximoTipo);
     setTypeLabel(tipoMarcacaoMap[proximoTipo]?.label || 'Tipo desconhecido');
-  }, [completedEntries]);
+  }, [completedEntries, tipoMarcacaoMap]);
 
   const formatDateTime = (date) => {
     const dateStr = date.toLocaleDateString('pt-BR', {
@@ -246,7 +284,7 @@ export default function TimeEntryScreen({ employeeName, employeeCode, trabalharF
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-            <p style={{ color: '#5A5A5A', fontSize: '1.5rem', fontWeight: 500, margin: 0 }}>Tipo de ponto</p>
+            <p style={{ color: '#5A5A5A', fontSize: '1.5rem', fontWeight: 500, margin: 0 }}>Tipo</p>
             <motion.button
               onClick={onBack}
               disabled={isLoading}

@@ -154,7 +154,7 @@ export default function WelcomeScreen({ onStart }) {
           transition={{ delay: 0.2 }}
           style={{ textAlign: 'center' }}
         >
-          <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#2A2A2A' }}>Controle de Ponto</h1>
+          <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#2A2A2A' }}>Impacto Locações</h1>
         </motion.div>
 
         {/* Data e Hora */}
@@ -201,7 +201,7 @@ export default function WelcomeScreen({ onStart }) {
           style={{ textAlign: 'center' }}
         >
           <p style={{ color: '#6A6A6A', fontSize: '0.875rem', fontWeight: 700 }}>
-            Toque no botão abaixo para iniciar seu registro
+            Toque no botão abaixo para iniciar
           </p>
         </motion.div>
 
@@ -249,7 +249,7 @@ export default function WelcomeScreen({ onStart }) {
           }}
         >
           <Clock style={{ width: '1.75rem', height: '1.75rem' }} strokeWidth={2} />
-          <span style={{ lineHeight: 0 }}>Registrar Ponto</span>
+          <span style={{ lineHeight: 0 }}>Iniciar</span>
         </motion.button>
 
         {/* Status */}

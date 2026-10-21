@@ -395,7 +395,7 @@ async function obterProximoTipo(req: Request, res: Response): Promise<any> {
   }
 
   try {
-    const dataRegistro = (data as string) || new Date().toISOString().split('T')[0];
+    const dataRegistro = typeof data === 'string' ? data : new Date().toISOString().split('T')[0];
     const registros = await firebirdDb.obterHistoricoPontos(parseInt(funcionario_codigo), dataRegistro);
 
     // Verificar se já completou o dia
@@ -452,7 +452,7 @@ async function obterHistorico(req: Request, res: Response): Promise<any> {
   }
 
   try {
-    const dataRegistro = (data as string) || new Date().toISOString().split('T')[0];
+    const dataRegistro = typeof data === 'string' ? data : new Date().toISOString().split('T')[0];
     const registros = await firebirdDb.obterHistoricoPontos(parseInt(funcionario_codigo), dataRegistro);
 
     res.json({

@@ -268,7 +268,8 @@ async function registrarPontoFirebird(dados: DadosPonto): Promise<ResultadoPonto
     const dataObj = new Date(data + 'T00:00:00');
     // Observação: se vazia, enviar null ao invés de espaço
     const obsProcessada = observacao && observacao.trim() ? observacao : null;
-    const fotoProcessada = foto_base64 && foto_base64.trim() ? foto_base64 : null;
+    const gravaFotoPonto = await obterGravaFotoPonto();
+    const fotoProcessada = gravaFotoPonto && foto_base64 && foto_base64.trim() ? foto_base64 : null;
 
     const sql = `
       INSERT INTO PONTO_FUNCIONARIO
@@ -473,6 +474,32 @@ async function obterTrabalharFacial(): Promise<boolean> {
 }
 
 /**
+ * Define se a foto usada na validação facial deve acompanhar o registro de ponto.
+ * Sem o parâmetro configurado, a opção mais segura é não persistir a imagem.
+ */
+async function obterGravaFotoPonto(): Promise<boolean> {
+  try {
+    const parametrosExiste = await tabelaExiste('PARAMETROS');
+    if (!parametrosExiste || !await colunaExiste('PARAMETROS', 'GRAVA_FOTO_PONTO')) {
+      return false;
+    }
+
+    const resultado = await executarQuery(
+      `SELECT FIRST 1 COALESCE(GRAVA_FOTO_PONTO, 'N') AS GRAVA_FOTO_PONTO FROM PARAMETROS`,
+      []
+    );
+
+    const valor = String(resultado?.[0]?.GRAVA_FOTO_PONTO ?? resultado?.[0]?.grava_foto_ponto ?? 'N')
+      .trim()
+      .toUpperCase();
+    return valor === 'S';
+  } catch (erro) {
+    console.warn('Falha ao obter parâmetro GRAVA_FOTO_PONTO. Foto não será armazenada.', erro);
+    return false;
+  }
+}
+
+/**
  * Criar tabelas de biometria no Firebird se não existirem
  */
 async function inicializarTabelasBiometria(): Promise<void> {
@@ -615,6 +642,7 @@ export {
   inicializarTabelasBiometria,
   gravarLogPonto,
   obterTrabalharFacial,
+  obterGravaFotoPonto,
   executarQuery,
   firebirdConfig,
   // Types

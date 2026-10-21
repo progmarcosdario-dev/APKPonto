@@ -244,7 +244,7 @@ export default function FaceVerificationCard({ funcionarioCodigo, onVerifiedChan
 
   return (
     <div style={{ width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.75)', borderRadius: '1rem', padding: '0.75rem' }}>
-      <p style={{ margin: 0, color: '#2A2A2A', fontWeight: 600, fontSize: '1.1rem' }}>Validacao Facial</p>
+      <p style={{ margin: 0, color: '#2A2A2A', fontWeight: 600, fontSize: '1.1rem' }}>V</p>
       <p style={{ margin: '0.25rem 0 0.5rem 0', color: '#5A5A5A', fontSize: '0.95rem' }}>{status}</p>
 
       {dispositivos.length > 0 && (
